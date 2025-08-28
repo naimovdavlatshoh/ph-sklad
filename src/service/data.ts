@@ -1,17 +1,17 @@
 import axios from "axios";
 import { handleAuthError } from "../utils/authUtils";
 
-// axios.interceptors.response.use(
-//     (response) => response,
-//     (error) => {
+axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
 
-//         if (handleAuthError(error)) {
+        if (handleAuthError(error)) {
 
-//             return Promise.resolve({ data: { handled: true } });
-//         }
-//         return Promise.reject(error);
-//     }
-// );
+            return Promise.resolve({ data: { handled: true } });
+        }
+        return Promise.reject(error);
+    }
+);
 
 export const GetDataSimpleBlob = async (url: string, config: any = {}) => {
     const token = localStorage.getItem("token"); // yoki sessionStorage
