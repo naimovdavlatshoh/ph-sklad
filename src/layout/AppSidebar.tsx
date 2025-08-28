@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { IoDocumentLockOutline } from "react-icons/io5";
-import { MdPendingActions } from "react-icons/md";
+// import { IoDocumentLockOutline } from "react-icons/io5";
+// import { MdPendingActions } from "react-icons/md";
 import { GrMoney } from "react-icons/gr";
 import { TbCategory } from "react-icons/tb";
-import { TbFaceId } from "react-icons/tb";
+// import { TbFaceId } from "react-icons/tb";
 import { SiMaterialformkdocs } from "react-icons/si";
 import { GrUserWorker } from "react-icons/gr";
 import { HiOutlineUsers } from "react-icons/hi2";
@@ -23,7 +23,7 @@ import {
     // TableIcon,
     // UserCircleIcon,
     UserIcon,
-    DocsIcon,
+    // DocsIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import { useSearch } from "../context/SearchContext";
@@ -80,49 +80,48 @@ const navItems: NavItem[] = [
         path: "/arrivals",
         roles: [1, 2], // Admin va Director
     },
-    {
-        name: "Новые контракты",
-        icon: <IoDocumentLockOutline />,
-        path: "/new-contracts",
-        roles: [1, 2], // Faqat Director
-    },
-    {
-        name: "Контракты в процессе",
-        icon: <MdPendingActions />,
-        path: "/pending-contracts",
-        roles: [1, 2], // Faqat Director
-    },
-    {
-        name: "Завершенные контракты",
-        icon: <DocsIcon />,
-        path: "/completed-contracts",
-        roles: [1, 2], // Faqat Director
-    },
-    {
-        name: "Мои контракты",
-        icon: <DocsIcon />,
-        path: "/my-contracts",
-        roles: [4], // Faqat Labarant
-    },
-    {
-        name: "Платежи",
-        icon: <GrMoney />,
-        path: "/payments",
-        roles: [1, 2], // Admin va Director
-    },
-
-    {
-        name: "Расходы",
-        icon: <GrMoney />,
-        path: "/expenses",
-        roles: [1, 2], // Admin va Director
-    },
-    {
-        name: "Face ID",
-        icon: <TbFaceId />,
-        path: "/face-id",
-        roles: [1, 2], // Admin va Director
-    },
+    // {
+    //     name: "Новые контракты",
+    //     icon: <IoDocumentLockOutline />,
+    //     path: "/new-contracts",
+    //     roles: [1, 2], // Faqat Director
+    // },
+    // {
+    //     name: "Контракты в процессе",
+    //     icon: <MdPendingActions />,
+    //     path: "/pending-contracts",
+    //     roles: [1, 2], // Faqat Director
+    // },
+    // {
+    //     name: "Завершенные контракты",
+    //     icon: <DocsIcon />,
+    //     path: "/completed-contracts",
+    //     roles: [1, 2], // Faqat Director
+    // },
+    // {
+    //     name: "Мои контракты",
+    //     icon: <DocsIcon />,
+    //     path: "/my-contracts",
+    //     roles: [4], // Faqat Labarant
+    // },
+    // {
+    //     name: "Платежи",
+    //     icon: <GrMoney />,
+    //     path: "/payments",
+    //     roles: [1, 2], // Admin va Director
+    // },
+    // {
+    //     name: "Расходы",
+    //     icon: <GrMoney />,
+    //     path: "/expenses",
+    //     roles: [1, 2], // Admin va Director
+    // },
+    // {
+    //     name: "Face ID",
+    //     icon: <TbFaceId />,
+    //     path: "/face-id",
+    //     roles: [1, 2], // Admin va Director
+    // },
     // {
     //     icon: <CalenderIcon />,
     //     name: "Calendar",

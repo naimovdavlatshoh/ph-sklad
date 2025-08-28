@@ -4,6 +4,7 @@ import { PostSimple, GetDataSimple } from "../../service/data";
 import { toast } from "react-hot-toast";
 import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
+import Select from "../../components/form/Select";
 
 interface Supplier {
     supplier_id: number;
@@ -257,13 +258,13 @@ export default function AddArrival({
                             <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
                                 Комментарии
                             </label>
-                            <textarea
+                            <InputField
+                                type="text"
                                 name="comments"
                                 value={formData.comments}
                                 onChange={handleInputChange}
                                 placeholder="Введите комментарии (не обязательно)"
-                                rows={3}
-                                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 resize-none hover:border-gray-300 dark:hover:border-gray-500"
+                                className="w-full px-4 py-4 h-[50px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
                             />
                         </div>
                     </div>
@@ -309,33 +310,28 @@ export default function AddArrival({
                                             <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
                                                 Материал
                                             </label>
-                                            <select
-                                                value={item.material_id}
-                                                onChange={(e) =>
+                                            <Select
+                                                options={materials.map(
+                                                    (material) => ({
+                                                        value: material.material_id,
+                                                        label: material.material_name,
+                                                    })
+                                                )}
+                                                placeholder="материал"
+                                                onChange={(value) =>
                                                     handleItemChange(
                                                         index,
                                                         "material_id",
-                                                        parseInt(e.target.value)
+                                                        parseInt(value)
                                                     )
                                                 }
-                                                className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-sm"
-                                            >
-                                                <option value={0}>
-                                                    Выберите материал
-                                                </option>
-                                                {materials.map((material) => (
-                                                    <option
-                                                        key={
-                                                            material.material_id
-                                                        }
-                                                        value={
-                                                            material.material_id
-                                                        }
-                                                    >
-                                                        {material.material_name}
-                                                    </option>
-                                                ))}
-                                            </select>
+                                                defaultValue={
+                                                    item.material_id > 0
+                                                        ? item.material_id.toString()
+                                                        : ""
+                                                }
+                                                className="text-sm"
+                                            />
                                         </div>
 
                                         <div>
