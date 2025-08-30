@@ -456,7 +456,7 @@ const AppSidebar: React.FC = () => {
                 <Link to="/">
                     {isExpanded || isHovered || isMobileOpen ? (
                         <span className="text-2xl font-bold text-brand-500 dark:text-brand-400">
-                            TIZIM
+                            PH-sklad
                         </span>
                     ) : (
                         <span className="text-xl font-bold text-brand-500 dark:text-brand-400">
