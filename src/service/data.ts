@@ -1,17 +1,17 @@
 import axios from "axios";
-import { handleAuthError } from "../utils/authUtils";
+// import { handleAuthError } from "../utils/authUtils";
 
-axios.interceptors.response.use(
-    (response) => response,
-    (error) => {
+// axios.interceptors.response.use(
+//     (response) => response,
+//     (error) => {
 
-        if (handleAuthError(error)) {
+//         if (handleAuthError(error)) {
 
-            return Promise.resolve({ data: { handled: true } });
-        }
-        return Promise.reject(error);
-    }
-);
+//             return Promise.resolve({ data: { handled: true } });
+//         }
+//         return Promise.reject(error);
+//     }
+// );
 
 export const GetDataSimpleBlob = async (url: string, config: any = {}) => {
     const token = localStorage.getItem("token"); // yoki sessionStorage
@@ -117,5 +117,47 @@ export const DeleteData = async (url: string) => {
             Authorization: `Bearer ${Token}`,
         },
     });
+    return response;
+};
+
+// Payments API functions
+export const GetPaymentsList = async (page: number = 1, limit: number = 10) => {
+    const response = await GetDataSimple(
+        `api/payments/list?page=${page}&limit=${limit}`
+    );
+    return response;
+};
+
+export const CreatePayment = async (paymentData: {
+    arrival_id: number;
+    payment_amount: number;
+    payment_method: number; // 1-Наличка, 2-Терминал, 3-Клик, 4-Перечисление
+    cash_type: number; // 0 - Доллар, 1 - сум
+    comments?: string;
+}) => {
+    const response = await PostDataTokenJson(
+        "api/payments/create",
+        paymentData
+    );
+    return response;
+};
+
+export const SearchPayments = async (keyword: string) => {
+    const response = await GetDataSimple(
+        `api/payments/search?keyword=${keyword}`
+    );
+    return response;
+};
+
+export const DeletePayment = async (paymentId: number) => {
+    const response = await DeleteData(`api/payments/delete/${paymentId}`);
+    return response;
+};
+
+// Arrivals search function
+export const SearchArrivals = async (keyword: string) => {
+    const response = await PostSimple(
+        `api/arrival/search?keyword=${encodeURIComponent(keyword)}`
+    );
     return response;
 };

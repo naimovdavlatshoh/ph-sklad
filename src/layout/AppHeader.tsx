@@ -5,9 +5,13 @@ import { useSearch } from "../context/SearchContext";
 // import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
+import DollarRateModal from "../components/modals/DollarRateModal";
+import { GetDataSimple } from "../service/data";
 
 const AppHeader: React.FC = () => {
     const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+    const [dollarRate, setDollarRate] = useState<number>(0);
+    const [dollarRateModalOpen, setDollarRateModalOpen] = useState(false);
     const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
     const { searchQuery, setSearchQuery, setCurrentPage } = useSearch();
     const location = useLocation();
@@ -33,6 +37,12 @@ const AppHeader: React.FC = () => {
             setCurrentPage("foremen");
         } else if (path.includes("/arrivals")) {
             setCurrentPage("arrivals");
+        } else if (path.includes("/materialsissues")) {
+            setCurrentPage("materialsissues");
+        } else if (path.includes("/balance")) {
+            setCurrentPage("balance");
+        } else if (path.includes("/returns")) {
+            setCurrentPage("returns");
         } else if (path.includes("/dashboard") || path === "/") {
             setCurrentPage("dashboard");
         } else {
@@ -56,6 +66,18 @@ const AppHeader: React.FC = () => {
 
     const inputRef = useRef<HTMLInputElement>(null);
 
+    // Fetch dollar rate
+    const fetchDollarRate = async () => {
+        try {
+            const response: any = await GetDataSimple("api/payments/dollar");
+            const rate =
+                response?.dollar_rate || response?.data?.dollar_rate || 0;
+            setDollarRate(rate);
+        } catch (error) {
+            console.error("Error fetching dollar rate:", error);
+        }
+    };
+
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if ((event.metaKey || event.ctrlKey) && event.key === "k") {
@@ -69,6 +91,11 @@ const AppHeader: React.FC = () => {
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
+    }, []);
+
+    // Fetch dollar rate on component mount
+    useEffect(() => {
+        fetchDollarRate();
     }, []);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,41 +178,46 @@ const AppHeader: React.FC = () => {
                         </svg>
                     </button>
 
-                    <div className="block">
-                        <form>
-                            <div className="relative">
-                                <span className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2">
-                                    <svg
-                                        className="fill-gray-500 dark:fill-gray-400"
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 20 20"
-                                        fill="none"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            fillRule="evenodd"
-                                            clipRule="evenodd"
-                                            d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-                                            fill=""
-                                        />
-                                    </svg>
-                                </span>
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={handleSearchChange}
-                                    placeholder="Поиск..."
-                                    className="dark:bg-dark-900 h-11  rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800  dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 w-64 lg:w-80 xl:w-[430px]"
-                                />
+                    <div className="flex items-center gap-4">
+                        {/* Dollar Rate Display */}
 
-                                <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
-                                    <span> ⌘ </span>
-                                    <span> K </span>
-                                </button>
-                            </div>
-                        </form>
+                        {/* Search Input */}
+                        <div className="block">
+                            <form>
+                                <div className="relative">
+                                    <span className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2">
+                                        <svg
+                                            className="fill-gray-500 dark:fill-gray-400"
+                                            width="20"
+                                            height="20"
+                                            viewBox="0 0 20 20"
+                                            fill="none"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                        >
+                                            <path
+                                                fillRule="evenodd"
+                                                clipRule="evenodd"
+                                                d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+                                                fill=""
+                                            />
+                                        </svg>
+                                    </span>
+                                    <input
+                                        ref={inputRef}
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={handleSearchChange}
+                                        placeholder="Поиск..."
+                                        className="dark:bg-dark-900 h-11  rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800  dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 w-64 lg:w-80 xl:w-[430px]"
+                                    />
+
+                                    <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
+                                        <span> ⌘ </span>
+                                        <span> K </span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
                 <div
@@ -197,6 +229,35 @@ const AppHeader: React.FC = () => {
                         {/* <!-- Dark Mode Toggler --> */}
                         {/* <ThemeToggleButton /> */}
                         {/* <!-- Dark Mode Toggler --> */}
+                        <div className="hidden lg:flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-1">
+                                <span className="text-blue-600 dark:text-blue-400 font-semibold text-sm">
+                                    $
+                                </span>
+                                <span className="text-blue-700 dark:text-blue-300 font-medium text-sm">
+                                    {dollarRate.toLocaleString("ru-RU")}
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setDollarRateModalOpen(true)}
+                                className="p-1 hover:bg-green-100 dark:hover:bg-green-800/30 rounded transition-colors"
+                                title="Изменить курс"
+                            >
+                                <svg
+                                    className="w-3 h-3 text-blue-600 dark:text-blue-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
                         <NotificationDropdown />
                         {/* <!-- Notification Menu Area --> */}
                     </div>
@@ -204,6 +265,17 @@ const AppHeader: React.FC = () => {
                     <UserDropdown />
                 </div>
             </div>
+
+            {/* Dollar Rate Modal */}
+            <DollarRateModal
+                isOpen={dollarRateModalOpen}
+                onClose={() => setDollarRateModalOpen(false)}
+                onSuccess={() => {
+                    fetchDollarRate();
+                    setDollarRateModalOpen(false);
+                }}
+                currentRate={dollarRate}
+            />
         </header>
     );
 };

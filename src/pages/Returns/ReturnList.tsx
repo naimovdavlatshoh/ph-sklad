@@ -5,69 +5,75 @@ import PageMeta from "../../components/common/PageMeta.tsx";
 import { GetDataSimple, PostSimple } from "../../service/data.ts";
 import Pagination from "../../components/common/Pagination.tsx";
 import { Toaster } from "react-hot-toast";
+import TableReturn from "./TableReturn.tsx";
 import { useSearch } from "../../context/SearchContext";
 import { toast } from "react-hot-toast";
-import { useModal } from "../../hooks/useModal.ts";
 import Loader from "../../components/ui/loader/Loader.tsx";
-import TableForeman from "./TableForeman.tsx";
-import AddForeman from "./AddForeman.tsx";
 
-interface Foreman {
-    foreman_id: number;
+interface ReturnItem {
+    return_id: string;
+    issue_id: string;
+    issue_item_id: string;
+    material_name: string;
+    quantity: string;
     foreman_name: string;
-    phone_number: string;
-    comments?: string;
-    created_at: string;
+    issued_to_name: string;
+    return_user_name: string;
+    expected_return_date: string;
+    return_date: string;
+    delay_days: number;
+    returned_on_time: boolean;
+    return_status_text: string;
+    issue_condition_type: string;
+    issue_condition_note: string;
+    return_condition_type: string;
+    return_condition_note: string;
 }
 
-export default function ForemanList() {
+export default function ReturnList() {
     const { searchQuery, currentPage, setIsSearching } = useSearch();
-    const [filteredForemen, setFilteredForemen] = useState<Foreman[]>([]);
+    const [filteredReturns, setFilteredReturns] = useState<ReturnItem[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [status, setStatus] = useState(false);
-    const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
 
-    const fetchForemen = useCallback(async () => {
+    const fetchReturns = useCallback(async () => {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/foreman/list?page=${page}&limit=10`
+                `api/materialsissues/returnlist?page=${page}&limit=10`
             );
-            const foremenData =
+            const returnsData =
                 response?.result || response?.data?.result || [];
             const totalPagesData =
                 response?.pages || response?.data?.pages || 1;
 
-            setFilteredForemen(foremenData);
+            setFilteredReturns(returnsData);
             setTotalPages(totalPagesData);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching foremen:", error);
-            toast.error("Что-то пошло не так при загрузке прорабов");
+            console.error("Error fetching returns:", error);
+            toast.error("Что-то пошло не так при загрузке возвратов");
         }
     }, [page]);
 
     const performSearch = useCallback(
         async (query: string) => {
             if (!query.trim()) {
-                // If search is empty, fetch all foremen
-                fetchForemen();
+                fetchReturns();
                 return;
             }
 
-            // If search query is too short, don't search, just fetch all foremen
             if (query.trim().length < 3) {
-                console.log("Search query is too short, fetching all foremen");
-                fetchForemen();
+                fetchReturns();
                 return;
             }
 
             setIsSearching(true);
             try {
                 const response: any = await PostSimple(
-                    `api/foreman/search?keyword=${encodeURIComponent(
+                    `api/materialsissues/returnsearch?keyword=${encodeURIComponent(
                         query
                     )}&page=${page}&limit=10`
                 );
@@ -78,52 +84,41 @@ export default function ForemanList() {
                     const totalPagesData =
                         response?.data?.pages || response?.pages || 1;
 
-                    setFilteredForemen(searchResults);
+                    setFilteredReturns(searchResults);
                     setTotalPages(totalPagesData);
                 } else {
-                    fetchForemen();
+                    fetchReturns();
                 }
             } catch (error) {
                 console.error("Search error:", error);
-                fetchForemen();
+                fetchReturns();
             } finally {
                 setIsSearching(false);
             }
         },
-        [page, fetchForemen]
+        [page, fetchReturns]
     );
 
     const changeStatus = useCallback(() => {
         setStatus(!status);
-        fetchForemen();
-    }, [status, fetchForemen]);
+        fetchReturns();
+    }, [status, fetchReturns]);
 
     // Initial fetch when component mounts
     useEffect(() => {
-        fetchForemen();
-    }, [fetchForemen]);
+        fetchReturns();
+    }, [fetchReturns]);
 
     // Handle search and page changes
     useEffect(() => {
-        console.log("Search effect triggered:", {
-            currentPage,
-            searchQuery,
-            status,
-        });
-        if (currentPage === "foremen") {
+        if (currentPage === "returns") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all foremen");
-                fetchForemen();
-            } else {
-                console.log(
-                    "Search query too short, waiting for more characters"
-                );
-                // Don't do anything, just wait for user to type more
+                fetchReturns();
             }
         }
-    }, [searchQuery, currentPage, status, performSearch, fetchForemen]);
+    }, [searchQuery, currentPage, status, performSearch, fetchReturns]);
 
     if (loading) {
         return <Loader />;
@@ -131,34 +126,14 @@ export default function ForemanList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Список прорабов" />
-            <PageBreadcrumb pageTitle="Прорабы" />
+            <PageMeta title="PH-sklad" description="Возвраты" />
+            <PageBreadcrumb pageTitle="Возвраты" />
             <ComponentCard
-                title="Список прорабов"
-                desc={
-                    <button
-                        onClick={openModal}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        Добавить прораба
-                    </button>
-                }
+                title="Список возвратов"
+                desc="Просмотр всех возвращенных материалов"
             >
-                <TableForeman
-                    foremen={filteredForemen}
+                <TableReturn
+                    returns={filteredReturns}
                     changeStatus={changeStatus}
                 />
 
@@ -168,15 +143,6 @@ export default function ForemanList() {
                     onPageChange={setPage}
                 />
             </ComponentCard>
-
-            <AddForeman
-                isOpen={isOpen}
-                onClose={() => {
-                    closeModal();
-                    changeStatus();
-                }}
-                changeStatus={changeStatus}
-            />
 
             <Toaster
                 position="bottom-right"

@@ -5,69 +5,69 @@ import PageMeta from "../../components/common/PageMeta.tsx";
 import { GetDataSimple, PostSimple } from "../../service/data.ts";
 import Pagination from "../../components/common/Pagination.tsx";
 import { Toaster } from "react-hot-toast";
+
 import { useSearch } from "../../context/SearchContext";
 import { toast } from "react-hot-toast";
 import { useModal } from "../../hooks/useModal.ts";
 import Loader from "../../components/ui/loader/Loader.tsx";
-import TableForeman from "./TableForeman.tsx";
-import AddForeman from "./AddForeman.tsx";
+import TableBalance from "./TableBalance.tsx";
+import AddBalance from "./AddBalance.tsx";
 
-interface Foreman {
-    foreman_id: number;
-    foreman_name: string;
-    phone_number: string;
+interface Balance {
+    id: number;
+    payment_amount: number;
+    payment_method: number;
     comments?: string;
     created_at: string;
+    payment_method_text?: string;
+    user_name: string;
 }
 
-export default function ForemanList() {
+export default function BalanceList() {
     const { searchQuery, currentPage, setIsSearching } = useSearch();
-    const [filteredForemen, setFilteredForemen] = useState<Foreman[]>([]);
+    const [filteredBalances, setFilteredBalances] = useState<Balance[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [status, setStatus] = useState(false);
     const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
 
-    const fetchForemen = useCallback(async () => {
+    const fetchBalances = useCallback(async () => {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/foreman/list?page=${page}&limit=10`
+                `api/balance/list?page=${page}&limit=10`
             );
-            const foremenData =
+            const balancesData =
                 response?.result || response?.data?.result || [];
             const totalPagesData =
                 response?.pages || response?.data?.pages || 1;
 
-            setFilteredForemen(foremenData);
+            setFilteredBalances(balancesData);
             setTotalPages(totalPagesData);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching foremen:", error);
-            toast.error("Что-то пошло не так при загрузке прорабов");
+            console.error("Error fetching balances:", error);
+            toast.error("Что-то пошло не так при загрузке балансов");
         }
     }, [page]);
 
     const performSearch = useCallback(
         async (query: string) => {
             if (!query.trim()) {
-                // If search is empty, fetch all foremen
-                fetchForemen();
+                fetchBalances();
                 return;
             }
 
-            // If search query is too short, don't search, just fetch all foremen
             if (query.trim().length < 3) {
-                console.log("Search query is too short, fetching all foremen");
-                fetchForemen();
+                fetchBalances();
                 return;
             }
 
             setIsSearching(true);
             try {
                 const response: any = await PostSimple(
-                    `api/foreman/search?keyword=${encodeURIComponent(
+                    `api/balance/search?keyword=${encodeURIComponent(
                         query
                     )}&page=${page}&limit=10`
                 );
@@ -78,52 +78,41 @@ export default function ForemanList() {
                     const totalPagesData =
                         response?.data?.pages || response?.pages || 1;
 
-                    setFilteredForemen(searchResults);
+                    setFilteredBalances(searchResults);
                     setTotalPages(totalPagesData);
                 } else {
-                    fetchForemen();
+                    fetchBalances();
                 }
             } catch (error) {
                 console.error("Search error:", error);
-                fetchForemen();
+                fetchBalances();
             } finally {
                 setIsSearching(false);
             }
         },
-        [page, fetchForemen]
+        [page, fetchBalances]
     );
 
     const changeStatus = useCallback(() => {
         setStatus(!status);
-        fetchForemen();
-    }, [status, fetchForemen]);
+        fetchBalances();
+    }, [status, fetchBalances]);
 
     // Initial fetch when component mounts
     useEffect(() => {
-        fetchForemen();
-    }, [fetchForemen]);
+        fetchBalances();
+    }, [fetchBalances]);
 
     // Handle search and page changes
     useEffect(() => {
-        console.log("Search effect triggered:", {
-            currentPage,
-            searchQuery,
-            status,
-        });
-        if (currentPage === "foremen") {
+        if (currentPage === "balance") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all foremen");
-                fetchForemen();
-            } else {
-                console.log(
-                    "Search query too short, waiting for more characters"
-                );
-                // Don't do anything, just wait for user to type more
+                fetchBalances();
             }
         }
-    }, [searchQuery, currentPage, status, performSearch, fetchForemen]);
+    }, [searchQuery, currentPage, status, performSearch, fetchBalances]);
 
     if (loading) {
         return <Loader />;
@@ -131,10 +120,10 @@ export default function ForemanList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Список прорабов" />
-            <PageBreadcrumb pageTitle="Прорабы" />
+            <PageMeta title="PH-sklad" description="Баланс" />
+            <PageBreadcrumb pageTitle="Баланс" />
             <ComponentCard
-                title="Список прорабов"
+                title="Список балансов"
                 desc={
                     <button
                         onClick={openModal}
@@ -153,12 +142,12 @@ export default function ForemanList() {
                                 d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                             />
                         </svg>
-                        Добавить прораба
+                        Добавить баланс
                     </button>
                 }
             >
-                <TableForeman
-                    foremen={filteredForemen}
+                <TableBalance
+                    balances={filteredBalances}
                     changeStatus={changeStatus}
                 />
 
@@ -169,7 +158,7 @@ export default function ForemanList() {
                 />
             </ComponentCard>
 
-            <AddForeman
+            <AddBalance
                 isOpen={isOpen}
                 onClose={() => {
                     closeModal();

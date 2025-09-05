@@ -4,60 +4,84 @@ import { toast } from "react-hot-toast";
 import { DeleteData } from "../../service/data.ts";
 import { Modal } from "../../components/ui/modal/index.tsx";
 import { TrashBinIcon } from "../../icons/index.ts";
-import PaymentModal from "../../components/modals/PaymentModal";
 
-interface Arrival {
-    arrival_id: string;
-    user_name: string;
-    supplier_name: string;
-    total_price: string;
-    comments: string;
+interface Balance {
+    id: number;
+    payment_amount: number;
+    payment_method: number;
+    comments?: string;
     created_at: string;
+    payment_method_text?: string;
+    user_name: string;
 }
 
-interface TableArrivalProps {
-    arrivals: Arrival[];
+interface TableBalanceProps {
+    balances: Balance[];
     changeStatus: () => void;
 }
 
-export default function TableArrival({
-    arrivals,
+export default function TableBalance({
+    balances,
     changeStatus,
-}: TableArrivalProps) {
+}: TableBalanceProps) {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [selectedArrival, setSelectedArrival] = useState<Arrival | null>(
+    const [selectedBalance, setSelectedBalance] = useState<Balance | null>(
         null
     );
     const [isDeleting, setIsDeleting] = useState(false);
-    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-    const [selectedPaymentArrival, setSelectedPaymentArrival] =
-        useState<Arrival | null>(null);
 
     const handleDelete = async () => {
-        if (!selectedArrival) return;
+        if (!selectedBalance) return;
 
         setIsDeleting(true);
         try {
-            await DeleteData(
-                `api/arrival/delete/${selectedArrival.arrival_id}`
-            );
-            toast.success("Приход успешно удален");
+            await DeleteData(`api/balance/delete/${selectedBalance.id}`);
+            toast.success("Баланс успешно удален");
             changeStatus();
             setDeleteModalOpen(false);
         } catch (error) {
-            toast.error("Ошибка при удалении прихода");
+            toast.error("Ошибка при удалении баланса");
         } finally {
             setIsDeleting(false);
         }
     };
 
-    const handlePaymentClick = (arrival: Arrival) => {
-        setSelectedPaymentArrival(arrival);
-        setPaymentModalOpen(true);
+    const getPaymentMethodText = (method: string) => {
+        switch (method) {
+            case "1":
+                return "Наличка";
+            case "2":
+                return "Терминал";
+            case "3":
+                return "Клик";
+            case "4":
+                return "Перечисление";
+            default:
+                return "Неизвестно";
+        }
     };
 
-    const handlePaymentSuccess = () => {
-        changeStatus(); // Refresh the arrivals list
+    const getPaymentMethodColor = (method: string) => {
+        switch (method) {
+            case "1":
+                return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+            case "2":
+                return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+            case "3":
+                return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
+            case "4":
+                return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+            default:
+                return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+        }
+    };
+
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat("ru-RU", {
+            style: "currency",
+            currency: "UZS",
+            minimumFractionDigits: 0,
+        }).format(amount);
     };
 
     const formatDate = (dateString: string) => {
@@ -65,10 +89,10 @@ export default function TableArrival({
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
         });
     };
-
-    // calculateTotal function is no longer needed as total_price comes from backend
 
     return (
         <>
@@ -81,19 +105,19 @@ export default function TableArrival({
                                     #
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                    Поставщик
+                                    Сумма
+                                </th>
+                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                    Способ оплаты
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                     Пользователь
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                    Общая сумма
+                                    Комментарий
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                    Комментарии
-                                </th>
-                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                    Дата
+                                    Дата создания
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                     Действия
@@ -101,68 +125,73 @@ export default function TableArrival({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                            {arrivals.length === 0 ? (
+                            {balances.length === 0 ? (
                                 <tr>
                                     <td
                                         className="text-center py-8 text-gray-500 dark:text-gray-400"
-                                        colSpan={7}
+                                        colSpan={6}
                                     >
-                                        Приходы не найдены
+                                        <div className="flex flex-col items-center">
+                                            <svg
+                                                className="mx-auto h-12 w-12 mb-4 text-gray-400"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                                                />
+                                            </svg>
+                                            <p>Балансы не найдены</p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
-                                arrivals.map((arrival, index) => (
+                                balances.map((balance, index) => (
                                     <tr
-                                        key={arrival.arrival_id}
+                                        key={balance.id}
                                         className="border-b border-gray-100 dark:border-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.02]"
                                     >
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
                                             {index + 1}
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            {arrival.supplier_name}
-                                        </td>
-                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            {arrival.user_name}
-                                        </td>
                                         <td className="px-5 py-4 text-sm text-black dark:text-white font-medium">
-                                            {parseInt(
-                                                arrival.total_price
-                                            ).toLocaleString()}{" "}
-                                            сум
+                                            {formatCurrency(
+                                                balance.payment_amount
+                                            )}
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            <div
-                                                className="max-w-xs truncate"
-                                                title={arrival.comments}
+                                        <td className="px-5 py-4 text-sm">
+                                            <span
+                                                className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentMethodColor(
+                                                    balance.payment_method.toString()
+                                                )}`}
                                             >
-                                                {arrival.comments ||
-                                                    "Нет комментариев"}
-                                            </div>
+                                                {getPaymentMethodText(
+                                                    balance.payment_method.toString()
+                                                )}
+                                            </span>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            {formatDate(arrival.created_at)}
+                                            {balance?.user_name}
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
+                                            {balance.comments || "—"}
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
+                                            {formatDate(balance.created_at)}
                                         </td>
                                         <td className="px-5 py-4 text-sm">
                                             <div className="flex items-center space-x-2">
-                                                <Button
-                                                    onClick={() =>
-                                                        handlePaymentClick(
-                                                            arrival
-                                                        )
-                                                    }
-                                                    size="xs"
-                                                    variant="primary"
-                                                >
-                                                    Оплата
-                                                </Button>
                                                 <Button
                                                     onClick={() => {
                                                         setDeleteModalOpen(
                                                             true
                                                         );
-                                                        setSelectedArrival(
-                                                            arrival
+                                                        setSelectedBalance(
+                                                            balance
                                                         );
                                                     }}
                                                     size="xs"
@@ -207,12 +236,17 @@ export default function TableArrival({
                     </div>
 
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                        Удалить приход
+                        Удалить баланс
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                        Вы уверены, что хотите удалить приход от "
-                        {selectedArrival?.supplier_name}
-                        "?
+                        Вы уверены, что хотите удалить запись баланса на сумму{" "}
+                        {selectedBalance &&
+                            new Intl.NumberFormat("ru-RU", {
+                                style: "currency",
+                                currency: "UZS",
+                                minimumFractionDigits: 0,
+                            }).format(selectedBalance.payment_amount)}
+                        ?
                         <br />
                         Это действие нельзя отменить.
                     </p>
@@ -239,20 +273,6 @@ export default function TableArrival({
                     </div>
                 </div>
             </Modal>
-
-            {/* Payment Modal */}
-            {selectedPaymentArrival && (
-                <PaymentModal
-                    isOpen={paymentModalOpen}
-                    onClose={() => {
-                        setPaymentModalOpen(false);
-                        setSelectedPaymentArrival(null);
-                    }}
-                    arrivalId={selectedPaymentArrival.arrival_id}
-                    arrivalSupplier={selectedPaymentArrival.supplier_name}
-                    onPaymentSuccess={handlePaymentSuccess}
-                />
-            )}
         </>
     );
 }

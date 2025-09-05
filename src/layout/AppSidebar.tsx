@@ -8,6 +8,7 @@ import { TbCategory } from "react-icons/tb";
 import { SiMaterialformkdocs } from "react-icons/si";
 import { GrUserWorker } from "react-icons/gr";
 import { HiOutlineUsers } from "react-icons/hi2";
+import { GiReturnArrow } from "react-icons/gi";
 
 // Assume these icons are imported from an icon library
 import {
@@ -78,6 +79,30 @@ const navItems: NavItem[] = [
         name: "Приходы",
         icon: <GrMoney />,
         path: "/arrivals",
+        roles: [1, 2], // Admin va Director
+    },
+    {
+        name: "Выдача",
+        icon: <SiMaterialformkdocs />,
+        path: "/materialsissues",
+        roles: [1, 2], // Admin va Director
+    },
+    {
+        name: "Возвраты",
+        icon: <GiReturnArrow />,
+        path: "/returns",
+        roles: [1, 2], // Admin va Director
+    },
+    {
+        name: "Баланс",
+        icon: <GrMoney />,
+        path: "/balance",
+        roles: [1, 2], // Admin va Director
+    },
+    {
+        name: "Платежи",
+        icon: <GrMoney />,
+        path: "/payments",
         roles: [1, 2], // Admin va Director
     },
     // {
@@ -267,6 +292,10 @@ const AppSidebar: React.FC = () => {
             setCurrentPage("payments");
         } else if (path === "/users") {
             setCurrentPage("users");
+        } else if (path === "/balance") {
+            setCurrentPage("balance");
+        } else if (path === "/returns") {
+            setCurrentPage("returns");
         } else {
             setCurrentPage("");
         }

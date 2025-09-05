@@ -27,6 +27,10 @@ import MaterialList from "./pages/Materials";
 import SupplierList from "./pages/Suppliers";
 import ForemanList from "./pages/Foremen";
 import ArrivalList from "./pages/Arrivals";
+import { MaterialsIssuesList } from "./pages/MaterialsIssues";
+import { BalanceList } from "./pages/Balance";
+import { ReturnList } from "./pages/Returns";
+import { PaymentList } from "./pages/Payments";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -103,6 +107,17 @@ export default function App() {
                             <Route path="/foremen" element={<ForemanList />} />
 
                             <Route path="/arrivals" element={<ArrivalList />} />
+
+                            <Route
+                                path="/materialsissues"
+                                element={<MaterialsIssuesList />}
+                            />
+
+                            <Route path="/balance" element={<BalanceList />} />
+
+                            <Route path="/returns" element={<ReturnList />} />
+
+                            <Route path="/payments" element={<PaymentList />} />
 
                             {/* Ui Elements */}
                             <Route path="/alerts" element={<Alerts />} />

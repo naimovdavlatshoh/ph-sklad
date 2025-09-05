@@ -30,16 +30,23 @@ const Select: React.FC<SelectProps> = ({
     const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const [filteredOptions, setFilteredOptions] = useState<Option[]>(options);
+    const [filteredOptions, setFilteredOptions] = useState<Option[]>(
+        options || []
+    );
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Update filtered options when options change
     useEffect(() => {
+        if (!options || options.length === 0) {
+            setFilteredOptions([]);
+            return;
+        }
+
         if (searchTerm.trim() === "") {
             setFilteredOptions(options);
         } else {
             const filtered = options.filter((option) =>
-                option.label.toLowerCase().includes(searchTerm.toLowerCase())
+                option?.label?.toLowerCase().includes(searchTerm.toLowerCase())
             );
             setFilteredOptions(filtered);
         }
@@ -91,8 +98,8 @@ const Select: React.FC<SelectProps> = ({
         }
     };
 
-    const selectedOption = options.find(
-        (option) => option.value.toString() === selectedValue
+    const selectedOption = options?.find(
+        (option) => option?.value?.toString() === selectedValue
     );
 
     return (
@@ -155,23 +162,32 @@ const Select: React.FC<SelectProps> = ({
                     {/* Options List */}
                     <div className="max-h-48 overflow-y-auto">
                         {filteredOptions.length > 0 ? (
-                            filteredOptions.map((option) => (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    onClick={() =>
-                                        handleChange(option.value.toString())
-                                    }
-                                    className={`w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                                        option.value.toString() ===
-                                        selectedValue
-                                            ? "bg-brand-100 dark:bg-brand-900 text-brand-800 dark:text-brand-200"
-                                            : "text-gray-700 dark:text-gray-300"
-                                    }`}
-                                >
-                                    {option.label}
-                                </button>
-                            ))
+                            filteredOptions
+                                .filter(
+                                    (option) =>
+                                        option &&
+                                        option.value !== undefined &&
+                                        option.label
+                                )
+                                .map((option) => (
+                                    <button
+                                        key={option?.value || Math.random()}
+                                        type="button"
+                                        onClick={() =>
+                                            handleChange(
+                                                option?.value?.toString() || ""
+                                            )
+                                        }
+                                        className={`w-full px-4 py-2 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                                            option?.value?.toString() ===
+                                            selectedValue
+                                                ? "bg-brand-100 dark:bg-brand-900 text-brand-800 dark:text-brand-200"
+                                                : "text-gray-700 dark:text-gray-300"
+                                        }`}
+                                    >
+                                        {option?.label || ""}
+                                    </button>
+                                ))
                         ) : (
                             <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">
                                 {searchTerm ? "Ничего не найдено" : "Нет опций"}
