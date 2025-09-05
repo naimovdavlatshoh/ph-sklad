@@ -60,8 +60,8 @@ export default function TableMaterial({
         return returnType === 1 ? "С возвратом" : "Без возврата";
     };
 
-    const getReturnTypeColor = (returnType: number) => {
-        return returnType === 1
+    const getReturnTypeColor = (returnType: string) => {
+        return returnType === "1"
             ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
             : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
     };
@@ -122,7 +122,7 @@ export default function TableMaterial({
                                         <td className="px-5 py-4 text-sm">
                                             <span
                                                 className={`px-2 py-1 rounded-full text-xs font-medium ${getReturnTypeColor(
-                                                    material.return_type
+                                                    material.return_type.toString()
                                                 )}`}
                                             >
                                                 {getReturnTypeText(
