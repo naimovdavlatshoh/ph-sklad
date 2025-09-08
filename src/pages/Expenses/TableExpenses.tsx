@@ -182,110 +182,114 @@ export default function TableExpenses({
                 <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
                     <div className="max-w-full overflow-x-auto">
                         <table className="w-full">
-                            <thead className="border-b border-gray-100 dark:border-white/[0.05]">
-                                <tr>
-                                    <th className="px-5 py-3 font-medium text-gray-500 text-start">
-                                        #
-                                    </th>
-                                    <th className="px-5 py-3 font-medium text-gray-500 text-start">
-                                        Объект
-                                    </th>
-                                    <th className="px-5 py-3 font-medium text-gray-500 text-start">
-                                        Материал
-                                    </th>
-                                    <th className="px-5 py-3 font-medium text-gray-500 text-start">
-                                        Количество
-                                    </th>
-                                    <th className="px-5 py-3 font-medium text-gray-500 text-start">
-                                        Описание
-                                    </th>
-                                    <th className="px-5 py-3 font-medium text-gray-500 text-start">
-                                        Пользователь
-                                    </th>
-                                    <th className="px-5 py-3 font-medium text-gray-500 text-start">
-                                        Дата
-                                    </th>
-                                    <th className="px-5 py-3 font-medium text-gray-500 text-start">
-                                        Действия
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                                {expenses.length === 0 ? (
+                            <table className="w-full text-sm">
+                                {" "}
+                                {/* text-sm umumiy qilib */}
+                                <thead className="border-b border-gray-100 dark:border-white/[0.05]">
                                     <tr>
-                                        <td
-                                            colSpan={11}
-                                            className="text-center py-8 text-gray-500"
-                                        >
-                                            Расходы не найдены
-                                        </td>
+                                        <th className="px-4 py-2 font-medium text-gray-500 text-start">
+                                            #
+                                        </th>
+                                        <th className="px-4 py-2 font-medium text-gray-500 text-start">
+                                            Объект
+                                        </th>
+                                        <th className="px-4 py-2 font-medium text-gray-500 text-start">
+                                            Материал
+                                        </th>
+                                        <th className="px-4 py-2 font-medium text-gray-500 text-start">
+                                            Количество
+                                        </th>
+                                        <th className="px-4 py-2 font-medium text-gray-500 text-start">
+                                            Описание
+                                        </th>
+                                        <th className="px-4 py-2 font-medium text-gray-500 text-start">
+                                            Пользователь
+                                        </th>
+                                        <th className="px-4 py-2 font-medium text-gray-500 text-start">
+                                            Дата
+                                        </th>
+                                        <th className="px-4 py-2 font-medium text-gray-500 text-start">
+                                            Действия
+                                        </th>
                                     </tr>
-                                ) : (
-                                    expenses.map((expense, index) => (
-                                        <tr
-                                            key={expense.id}
-                                            className="hover:bg-gray-50 dark:hover:bg-white/[0.02]"
-                                        >
-                                            <td className="px-5 py-4">
-                                                {index + 1}
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05] text-sm">
+                                    {expenses.length === 0 ? (
+                                        <tr>
+                                            <td
+                                                colSpan={11}
+                                                className="text-center py-6 text-gray-500 text-sm"
+                                            >
+                                                Расходы не найдены
                                             </td>
-                                            <td className="px-5 py-4">
-                                                {expense.object_name || "—"}
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                {expense.material_name || "—"}
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                {expense.quantity}
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                <div
-                                                    className="max-w-xs truncate"
+                                        </tr>
+                                    ) : (
+                                        expenses.map((expense, index) => (
+                                            <tr
+                                                key={expense.id}
+                                                className="hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+                                            >
+                                                <td className="px-4 py-2">
+                                                    {index + 1}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {expense.object_name || "—"}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {expense.material_name ||
+                                                        "—"}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {parseFloat(
+                                                        expense.quantity
+                                                    ).toString()}
+                                                </td>
+                                                <td
+                                                    className="px-4 py-2 max-w-xs truncate"
                                                     title={expense.comments}
                                                 >
                                                     {expense.comments || "—"}
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                {expense.user_name}
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                <div>
-                                                    <div className="font-medium">
-                                                        {formatDate(
-                                                            expense.created_at
-                                                        )}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {expense.user_name}
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    <div>
+                                                        <div className="font-medium">
+                                                            {formatDate(
+                                                                expense.created_at
+                                                            )}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            {formatTime(
+                                                                expense.created_at
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500">
-                                                        {formatTime(
-                                                            expense.created_at
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-5 py-4">
-                                                {/* @ts-ignore */}
-                                                <Button
-                                                    onClick={() => {
-                                                        setDeleteModalOpen(
-                                                            true
-                                                        );
-                                                        setSelectedExpense(
-                                                            expense
-                                                        );
-                                                    }}
-                                                    size="xs"
-                                                    variant="danger"
-                                                    startIcon={
-                                                        <TrashBinIcon className="size-4" />
-                                                    }
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
+                                                </td>
+                                                <td className="px-4 py-2">
+                                                    {/* @ts-ignore */}
+                                                    <Button
+                                                        onClick={() => {
+                                                            setDeleteModalOpen(
+                                                                true
+                                                            );
+                                                            setSelectedExpense(
+                                                                expense
+                                                            );
+                                                        }}
+                                                        size="xs"
+                                                        variant="danger"
+                                                        startIcon={
+                                                            <TrashBinIcon className="size-4" />
+                                                        }
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </table>
                     </div>
                 </div>
