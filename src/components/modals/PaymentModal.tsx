@@ -181,7 +181,7 @@ export default function PaymentModal({
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
                         Сводка по оплате
                     </h3>
-                    <div className="grid grid-cols-4 gap-4 text-sm">
+                    <div className="grid grid-cols-3 gap-4 text-sm">
                         <div className="text-center">
                             <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">
                                 Общая сумма
@@ -212,7 +212,7 @@ export default function PaymentModal({
                                 {formatAmount(remainingAmount.toString())} сум
                             </p>
                         </div>
-                        <div className="text-center">
+                        {/* <div className="text-center">
                             <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">
                                 Статус
                             </p>
@@ -227,7 +227,7 @@ export default function PaymentModal({
                                     ? "Полностью оплачено"
                                     : "Частично оплачено"}
                             </p>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
 
