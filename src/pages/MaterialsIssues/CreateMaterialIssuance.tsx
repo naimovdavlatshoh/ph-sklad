@@ -315,9 +315,9 @@ export default function CreateMaterialIssuance({
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            className="max-w-5xl max-h-[90vh]"
+            className="max-w-5xl max-h-[98vh]"
         >
-            <div className="p-6 max-h-[85vh] overflow-y-auto">
+            <div className="p-6 max-h-[93vh] overflow-y-auto">
                 <div className="mb-6">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                         Создание выдачи материала/инструмента
@@ -344,7 +344,7 @@ export default function CreateMaterialIssuance({
                                         handleSelectChange("foreman_id", value)
                                     }
                                     defaultValue={formData.foreman_id}
-                                    className=""
+                                    className="z-50 relative"
                                     searchable={true}
                                     onSearch={handleForemanSearch}
                                     searching={searchingForemen}
@@ -403,7 +403,7 @@ export default function CreateMaterialIssuance({
                             </Button>
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-4 pb-8">
                             {items.map((item, index) => (
                                 <div
                                     key={index}
@@ -452,7 +452,7 @@ export default function CreateMaterialIssuance({
                                                     )
                                                 }
                                                 defaultValue={item.material_id.toString()}
-                                                className="mt-2"
+                                                className="mt-2 z-50 relative"
                                                 searchable={true}
                                                 onSearch={handleMaterialSearch}
                                                 searching={searchingMaterials}
@@ -498,7 +498,7 @@ export default function CreateMaterialIssuance({
                                                     )
                                                 }
                                                 defaultValue={item.condition_type.toString()}
-                                                className="mt-2"
+                                                className="mt-2 z-50 relative"
                                             />
                                         </div>
 
@@ -529,7 +529,7 @@ export default function CreateMaterialIssuance({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-end space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-end space-x-4 pt-4 pb-6 border-t border-gray-200 dark:border-gray-700">
                         <Button
                             type="button"
                             variant="outline"

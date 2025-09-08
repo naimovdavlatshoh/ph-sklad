@@ -138,7 +138,7 @@ const Select: React.FC<SelectProps> = ({
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-hidden">
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-80 overflow-hidden">
                     {/* Search Input (if searchable) */}
                     {searchable && (
                         <div className="p-3 border-b border-gray-200 dark:border-gray-600">
@@ -160,7 +160,7 @@ const Select: React.FC<SelectProps> = ({
                     )}
 
                     {/* Options List */}
-                    <div className="max-h-48 overflow-y-auto">
+                    <div className="max-h-64 overflow-y-auto pb-2">
                         {filteredOptions.length > 0 ? (
                             filteredOptions
                                 .filter(

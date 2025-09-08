@@ -6,13 +6,71 @@ import { Modal } from "../../components/ui/modal/index.tsx";
 import { TrashBinIcon } from "../../icons/index.ts";
 import PaymentModal from "../../components/modals/PaymentModal";
 
+// Comment icon SVG
+const CommentIcon = ({ className }: { className?: string }) => (
+    <svg
+        className={className}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
+    </svg>
+);
+
+// Credit card icon SVG
+const CreditCardIcon = ({ className }: { className?: string }) => (
+    <svg
+        className={className}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+        />
+    </svg>
+);
+
+interface PaymentHistory {
+    payment_id: string;
+    user_id: string;
+    user_name: string;
+    arrival_id: string;
+    payment_amount: string;
+    payment_method: string;
+    payment_method_text: string;
+    cash_type: string;
+    cash_type_text: string;
+    payment_dollar_rate: string;
+    created_at: string;
+}
+
 interface Arrival {
     arrival_id: string;
+    invoice_number: string;
     user_name: string;
+    supplier_id: string;
     supplier_name: string;
+    payment_status: string;
+    payment_status_text: string;
     total_price: string;
+    delivery_price: string;
+    arrival_dollar_rate: string;
     comments: string;
     created_at: string;
+    total_payments: string;
+    payment_history: PaymentHistory[];
 }
 
 interface TableArrivalProps {
@@ -68,6 +126,37 @@ export default function TableArrival({
         });
     };
 
+    const formatTime = (dateString: string) => {
+        return new Date(dateString).toLocaleTimeString("ru-RU", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    // Generate random color for supplier badge
+    const getSupplierBadgeColor = (supplierName: string) => {
+        const colors = [
+            "bg-blue-500",
+            "bg-green-500",
+            "bg-purple-500",
+            "bg-pink-500",
+            "bg-indigo-500",
+            "bg-yellow-500",
+            "bg-red-500",
+            "bg-teal-500",
+        ];
+        const hash = supplierName.split("").reduce((a, b) => {
+            a = (a << 5) - a + b.charCodeAt(0);
+            return a & a;
+        }, 0);
+        return colors[Math.abs(hash) % colors.length];
+    };
+
+    // Get first letter of supplier name
+    const getSupplierInitial = (supplierName: string) => {
+        return supplierName.charAt(0).toUpperCase();
+    };
+
     // calculateTotal function is no longer needed as total_price comes from backend
 
     return (
@@ -81,6 +170,9 @@ export default function TableArrival({
                                     #
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                    Инвойс номер
+                                </th>
+                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                     Поставщик
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
@@ -90,6 +182,9 @@ export default function TableArrival({
                                     Общая сумма
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                    Статус оплаты
+                                </th>
+                                <th className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">
                                     Комментарии
                                 </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
@@ -105,7 +200,7 @@ export default function TableArrival({
                                 <tr>
                                     <td
                                         className="text-center py-8 text-gray-500 dark:text-gray-400"
-                                        colSpan={7}
+                                        colSpan={8}
                                     >
                                         Приходы не найдены
                                     </td>
@@ -120,7 +215,23 @@ export default function TableArrival({
                                             {index + 1}
                                         </td>
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            {arrival.supplier_name}
+                                            {arrival.invoice_number || "—"}
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
+                                            <div className="flex items-center">
+                                                <div
+                                                    className={`w-8 h-8 rounded-full ${getSupplierBadgeColor(
+                                                        arrival.supplier_name
+                                                    )} flex items-center justify-center text-white text-sm font-medium mr-3`}
+                                                >
+                                                    {getSupplierInitial(
+                                                        arrival.supplier_name
+                                                    )}
+                                                </div>
+                                                <span className="font-medium">
+                                                    {arrival.supplier_name}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
                                             {arrival.user_name}
@@ -131,17 +242,48 @@ export default function TableArrival({
                                             ).toLocaleString()}{" "}
                                             сум
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            <div
-                                                className="max-w-xs truncate"
-                                                title={arrival.comments}
+                                        <td className="px-5 py-4 text-sm">
+                                            <span
+                                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                                    arrival.payment_status ===
+                                                    "3"
+                                                        ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
+                                                        : arrival.payment_status ===
+                                                          "2"
+                                                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+                                                        : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+                                                }`}
                                             >
-                                                {arrival.comments ||
-                                                    "Нет комментариев"}
-                                            </div>
+                                                {arrival.payment_status_text}
+                                            </span>
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-center">
+                                            {arrival.comments &&
+                                            arrival.comments.trim() !== "" ? (
+                                                <div className="relative group">
+                                                    <CommentIcon className="w-5 h-5 text-green-500 mx-auto cursor-pointer hover:text-green-600 transition-colors" />
+                                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap max-w-xs z-10">
+                                                        {arrival.comments}
+                                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <CommentIcon className="w-5 h-5 text-gray-300 mx-auto" />
+                                            )}
                                         </td>
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            {formatDate(arrival.created_at)}
+                                            <div>
+                                                <div className="font-medium">
+                                                    {formatDate(
+                                                        arrival.created_at
+                                                    )}
+                                                </div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    {formatTime(
+                                                        arrival.created_at
+                                                    )}
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-5 py-4 text-sm">
                                             <div className="flex items-center space-x-2">
@@ -153,8 +295,11 @@ export default function TableArrival({
                                                     }
                                                     size="xs"
                                                     variant="primary"
+                                                    startIcon={
+                                                        <CreditCardIcon className="w-4 h-4" />
+                                                    }
                                                 >
-                                                    Оплата
+                                                    {""}
                                                 </Button>
                                                 <Button
                                                     onClick={() => {
@@ -250,6 +395,12 @@ export default function TableArrival({
                     }}
                     arrivalId={selectedPaymentArrival.arrival_id}
                     arrivalSupplier={selectedPaymentArrival.supplier_name}
+                    paymentHistory={selectedPaymentArrival.payment_history}
+                    totalPrice={selectedPaymentArrival.total_price}
+                    totalPayments={selectedPaymentArrival.total_payments}
+                    arrivalDollarRate={
+                        selectedPaymentArrival.arrival_dollar_rate
+                    }
                     onPaymentSuccess={handlePaymentSuccess}
                 />
             )}

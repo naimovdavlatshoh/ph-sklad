@@ -261,7 +261,7 @@ export default function TableMaterialsIssues({
                                             (item) => item.actual_return_date
                                         ) ? (
                                             <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                                                Частично возвращено
+                                                Возвращено
                                             </span>
                                         ) : (
                                             <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">

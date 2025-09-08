@@ -11,15 +11,39 @@ import { useModal } from "../../hooks/useModal.ts";
 import Loader from "../../components/ui/loader/Loader.tsx";
 import TableArrival from "./TableArrival.tsx";
 import AddArrival from "./AddArrival.tsx";
+import TabNavigation from "../../components/common/TabNavigation.tsx";
+import TableOstatki from "../Warehouse/TableOstatki.tsx";
+import TableExpenses from "../Expenses/TableExpenses.tsx";
 
+interface PaymentHistory {
+    payment_id: string;
+    user_id: string;
+    user_name: string;
+    arrival_id: string;
+    payment_amount: string;
+    payment_method: string;
+    payment_method_text: string;
+    cash_type: string;
+    cash_type_text: string;
+    payment_dollar_rate: string;
+    created_at: string;
+}
 
 interface Arrival {
     arrival_id: string;
+    invoice_number: string;
     user_name: string;
+    supplier_id: string;
     supplier_name: string;
+    payment_status: string;
+    payment_status_text: string;
     total_price: string;
+    delivery_price: string;
+    arrival_dollar_rate: string;
     comments: string;
     created_at: string;
+    total_payments: string;
+    payment_history: PaymentHistory[];
 }
 
 export default function ArrivalList() {
@@ -30,6 +54,22 @@ export default function ArrivalList() {
     const [status, setStatus] = useState(false);
     const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
+    const [activeTab, setActiveTab] = useState("prixod");
+
+    const tabs = [
+        {
+            id: "ostatki",
+            label: "Остатки",
+        },
+        {
+            id: "prixod",
+            label: "Приход",
+        },
+        {
+            id: "rasxod",
+            label: "Расход",
+        },
+    ];
 
     const fetchArrivals = useCallback(async () => {
         setLoading(true);
@@ -97,8 +137,10 @@ export default function ArrivalList() {
 
     const changeStatus = useCallback(() => {
         setStatus(!status);
-        fetchArrivals();
-    }, [status, fetchArrivals]);
+        if (activeTab === "prixod") {
+            fetchArrivals();
+        }
+    }, [status, fetchArrivals, activeTab]);
 
     // Initial fetch when component mounts
     useEffect(() => {
@@ -111,8 +153,9 @@ export default function ArrivalList() {
             currentPage,
             searchQuery,
             status,
+            activeTab,
         });
-        if (currentPage === "arrivals") {
+        if (currentPage === "arrivals" && activeTab === "prixod") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
                 console.log("Performing search for:", searchQuery);
                 performSearch(searchQuery);
@@ -126,60 +169,124 @@ export default function ArrivalList() {
                 // Don't do anything, just wait for user to type more
             }
         }
-    }, [searchQuery, currentPage, status, performSearch, fetchArrivals]);
+    }, [
+        searchQuery,
+        currentPage,
+        status,
+        activeTab,
+        performSearch,
+        fetchArrivals,
+    ]);
 
     if (loading) {
         return <Loader />;
     }
 
+    const renderTabContent = () => {
+        switch (activeTab) {
+            case "ostatki":
+                return (
+                    <TableOstatki
+                        searchQuery={searchQuery}
+                        currentPage={page}
+                        onPageChange={setPage}
+                    />
+                );
+            case "prixod":
+                return (
+                    <>
+                        <TableArrival
+                            arrivals={filteredArrivals}
+                            changeStatus={changeStatus}
+                        />
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                        />
+                    </>
+                );
+            case "rasxod":
+                return (
+                    <TableExpenses
+                        searchQuery={searchQuery}
+                        currentPage={page}
+                        onPageChange={setPage}
+                      
+                    />
+                );
+            default:
+                return null;
+        }
+    };
+
+    const getPageTitle = () => {
+        switch (activeTab) {
+            case "ostatki":
+                return "Остатки";
+            case "prixod":
+                return "Приходы";
+            case "rasxod":
+                return "Расходы";
+            default:
+                return "Приходы";
+        }
+    };
+
+    const getAddButton = () => {
+        if (activeTab === "prixod") {
+            return (
+                <button
+                    onClick={openModal}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                >
+                    <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                    </svg>
+                    Добавить приход
+                </button>
+            );
+        }
+        return null;
+    };
+
     return (
         <>
-            <PageMeta title="PH-sklad" description="Список приходов" />
-            <PageBreadcrumb pageTitle="Приходы" />
-            <ComponentCard
-                title="Список приходов"
-                desc={
-                    <button
-                        onClick={openModal}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        Добавить приход
-                    </button>
-                }
-            >
-                <TableArrival
-                    arrivals={filteredArrivals}
+            <PageMeta title="PH-sklad" description={getPageTitle()} />
+            <PageBreadcrumb pageTitle={getPageTitle()} />
+
+            <div className="space-y-6">
+                <TabNavigation
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabChange={setActiveTab}
+                />
+
+                <ComponentCard title={getPageTitle()} desc={getAddButton()}>
+                    {renderTabContent()}
+                </ComponentCard>
+            </div>
+
+            {activeTab === "prixod" && (
+                <AddArrival
+                    isOpen={isOpen}
+                    onClose={() => {
+                        closeModal();
+                        changeStatus();
+                    }}
                     changeStatus={changeStatus}
                 />
-
-                <Pagination
-                    currentPage={page}
-                    totalPages={totalPages}
-                    onPageChange={setPage}
-                />
-            </ComponentCard>
-
-            <AddArrival
-                isOpen={isOpen}
-                onClose={() => {
-                    closeModal();
-                    changeStatus();
-                }}
-                changeStatus={changeStatus}
-            />
+            )}
 
             <Toaster
                 position="bottom-right"
