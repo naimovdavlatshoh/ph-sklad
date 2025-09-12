@@ -217,6 +217,7 @@ export default function AddWriteOffModal({
                                     }
                                     defaultValue={formData.material_id}
                                     className="z-50 relative"
+                                    style={{ zIndex: 1000 }}
                                     searchable={true}
                                     onSearch={handleMaterialSearch}
                                     searching={searchingMaterials}
@@ -250,6 +251,7 @@ export default function AddWriteOffModal({
                                 }
                                 defaultValue={formData.reason_type}
                                 className="mt-2 z-50 relative"
+                                style={{ zIndex: 999 }}
                             />
                         </div>
                     </div>

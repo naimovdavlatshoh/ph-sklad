@@ -60,12 +60,15 @@ export default function MaterialsIssuesList() {
     const [returnModalOpen, setReturnModalOpen] = useState(false);
     const [selectedIssueId, setSelectedIssueId] = useState<number | null>(null);
     const [loading, setLoading] = useState(false);
+    const [returnFilter, setReturnFilter] = useState<"without" | "with">(
+        "with"
+    );
 
     const fetchIssues = useCallback(async () => {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/materialsissues/list?page=${page}&limit=10`
+                `api/materialsissues/list?page=${page}&limit=10&return_filter=${returnFilter}`
             );
             const issuesData = response?.result || response?.data?.result || [];
             const totalPagesData =
@@ -78,7 +81,7 @@ export default function MaterialsIssuesList() {
             console.error("Error fetching material issues:", error);
             toast.error("Что-то пошло не так при загрузке выданных материалов");
         }
-    }, [page]);
+    }, [page, returnFilter]);
 
     // const fetchForemen = useCallback(async () => {
     //     try {
@@ -158,6 +161,11 @@ export default function MaterialsIssuesList() {
         setReturnModalOpen(true);
     };
 
+    const handleFilterChange = (filter: "without" | "with") => {
+        setReturnFilter(filter);
+        setPage(1); // Reset to first page when filter changes
+    };
+
     // Initial fetch when component mounts
     useEffect(() => {
         fetchIssues();
@@ -218,6 +226,8 @@ export default function MaterialsIssuesList() {
                     issues={filteredIssues}
                     changeStatus={changeStatus}
                     onReturnTool={handleReturnTool}
+                    activeFilter={returnFilter}
+                    onFilterChange={handleFilterChange}
                 />
 
                 <Pagination

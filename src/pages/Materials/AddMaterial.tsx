@@ -4,6 +4,8 @@ import { GetDataSimple, PostSimple } from "../../service/data";
 import { toast } from "react-hot-toast";
 import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
+import Select from "../../components/form/Select";
+import Label from "../../components/form/Label";
 
 interface Category {
     category_id: number;
@@ -39,15 +41,27 @@ export default function AddMaterial({
     const [units, setUnits] = useState<Unit[]>([]);
 
     useEffect(() => {
-        GetDataSimple("api/materials/unit/list").then((res: Unit[]) => {
-            setUnits(res);
-        });
+        GetDataSimple("api/materials/unit/list")
+            .then((res: any) => {
+                console.log("Units API response:", res);
+                const unitsData = res?.result || res?.data?.result || res || [];
+                setUnits(unitsData);
+                console.log("Units data:", unitsData);
+            })
+            .catch((error) => {
+                console.error("Error fetching units:", error);
+            });
     }, [isOpen]);
 
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-    ) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleSelectChange = (name: string, value: string) => {
         setFormData((prev) => ({
             ...prev,
             [name]: value,
@@ -115,26 +129,21 @@ export default function AddMaterial({
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <Label htmlFor="category-select">
                             Категория материала *
-                        </label>
-                        <select
-                            name="category_id"
-                            value={formData.category_id}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            required
-                        >
-                            <option value="">Выберите категорию</option>
-                            {categories.map((category) => (
-                                <option
-                                    key={category.category_id}
-                                    value={category.category_id}
-                                >
-                                    {category.category_name}
-                                </option>
-                            ))}
-                        </select>
+                        </Label>
+                        <Select
+                            options={categories.map((category) => ({
+                                value: category.category_id,
+                                label: category.category_name,
+                            }))}
+                            placeholder="Выберите категорию"
+                            onChange={(value) =>
+                                handleSelectChange("category_id", value)
+                            }
+                            defaultValue={formData.category_id}
+                            className="mt-2"
+                        />
                     </div>
 
                     <div>
@@ -152,39 +161,37 @@ export default function AddMaterial({
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <Label htmlFor="return-type-select">
                             Тип возврата *
-                        </label>
-                        <select
-                            name="return_type"
-                            value={formData.return_type}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            required
-                        >
-                            <option value="1">С возвратом</option>
-                            <option value="2">Без возврата</option>
-                        </select>
+                        </Label>
+                        <Select
+                            options={[
+                                { value: 1, label: "С возвратом" },
+                                { value: 2, label: "Без возврата" },
+                            ]}
+                            placeholder="Выберите тип возврата"
+                            onChange={(value) =>
+                                handleSelectChange("return_type", value)
+                            }
+                            defaultValue={formData.return_type}
+                            className="mt-2"
+                        />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Единица измерения *
-                        </label>
-                        <select
-                            name="unit_id"
-                            value={formData.unit_id}
-                            onChange={handleInputChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            required
-                        >
-                            <option value="">Выберите единицу</option>
-                            {units.map((unit) => (
-                                <option key={unit.unit_id} value={unit.unit_id}>
-                                    {unit.unit_name}
-                                </option>
-                            ))}
-                        </select>
+                        <Label htmlFor="unit-select">Единица измерения *</Label>
+                        <Select
+                            options={units.map((unit) => ({
+                                value: unit.unit_id,
+                                label: unit.unit_name,
+                            }))}
+                            placeholder="Выберите единицу"
+                            onChange={(value) =>
+                                handleSelectChange("unit_id", value)
+                            }
+                            defaultValue={formData.unit_id}
+                            className="mt-2"
+                        />
                     </div>
 
                     <div className="flex justify-end space-x-3 pt-4">

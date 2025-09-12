@@ -38,10 +38,14 @@ interface TableMaterialsIssuesProps {
     issues: MaterialIssue[];
     changeStatus: () => void;
     onReturnTool: (issueId: number) => void;
+    activeFilter: "without" | "with";
+    onFilterChange: (filter: "without" | "with") => void;
 }
 
 export default function TableMaterialsIssues({
     issues,
+    activeFilter,
+    onFilterChange,
 }: TableMaterialsIssuesProps) {
     const [returnModalOpen, setReturnModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<{
@@ -131,197 +135,245 @@ export default function TableMaterialsIssues({
     }
 
     return (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-            <div className="max-w-full overflow-x-auto">
-                <Table>
-                    <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-                        <TableRow>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                #
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Прораб
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Материалы
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Ожидаемая дата возврата
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Статус
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Дата создания
-                            </TableCell>
-                            <TableCell
-                                isHeader
-                                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                            >
-                                Действия
-                            </TableCell>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {issues.map((issue, index) => (
-                            <TableRow
-                                key={issue.id}
-                                className="border-b border-gray-100 dark:border-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.02]"
-                            >
-                                <TableCell className="px-5 py-4 font-medium text-gray-900 dark:text-white">
-                                    {index + 1}
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                    <div>
-                                        <div className="font-medium text-gray-900 dark:text-white">
-                                            {issue.foreman_name}
-                                        </div>
-                                        {issue.comments && (
-                                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                {issue.comments}
-                                            </div>
-                                        )}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                    <div className="space-y-1">
-                                        {issue.items.map((item, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center gap-2"
-                                            >
-                                                <span className="text-sm">
-                                                    {item.material_name} x{" "}
-                                                    {Math.round(item.quantity)}
-                                                </span>
-                                                <span
-                                                    className={`px-2 py-1 text-xs rounded-full ${getConditionTypeColor(
-                                                        item.condition_type
-                                                    )}`}
-                                                >
-                                                    {getConditionTypeText(
-                                                        parseInt(
-                                                            item.condition_type
-                                                        )
-                                                    )}
-                                                </span>
-                                                {item.returned && (
-                                                    <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                                                        Возвращено
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                    <div
-                                        className={`${
-                                            isOverdue(
-                                                issue.expected_return_date
-                                            )
-                                                ? "text-red-600 dark:text-red-400"
-                                                : ""
-                                        }`}
-                                    >
-                                        {formatDate(issue.expected_return_date)}
-                                        {isOverdue(
-                                            issue.expected_return_date
-                                        ) && (
-                                            <div className="text-xs text-red-500">
-                                                Просрочено
-                                            </div>
-                                        )}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                    <div className="flex flex-col gap-1">
-                                        <span className="text-sm">
-                                            {issue.items[0].actual_return_date}
-                                        </span>
-                                        {issue.items.some(
-                                            (item) => item.actual_return_date
-                                        ) ? (
-                                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                                                Возвращено
-                                            </span>
-                                        ) : (
-                                            <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
-                                                Не возвращено
-                                            </span>
-                                        )}
-                                    </div>
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                    {issue.created_at}
-                                </TableCell>
-                                <TableCell className="px-5 py-4">
-                                    <div className="flex flex-wrap gap-2">
-                                        {issue.items.map((item, itemIndex) => (
-                                            <Button
-                                                key={itemIndex}
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() =>
-                                                    handleReturnClick(
-                                                        item.id,
-                                                        item.material_name
-                                                    )
-                                                }
-                                                disabled={
-                                                    item.actual_return_date !==
-                                                    null
-                                                }
-                                                className={
-                                                    item.returned
-                                                        ? "opacity-50 cursor-not-allowed"
-                                                        : ""
-                                                }
-                                            >
-                                                {item.actual_return_date
-                                                    ? "Возврат"
-                                                    : "Возврат"}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+        <div className="space-y-4">
+            {/* Filter Buttons */}
+            <div className="flex gap-2">
+                <button
+                    onClick={() => onFilterChange("without")}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 ${
+                        activeFilter === "without"
+                            ? "bg-brand-500 text-white border-brand-500 shadow-sm"
+                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}
+                >
+                    Без возврата
+                </button>
+                <button
+                    onClick={() => onFilterChange("with")}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 ${
+                        activeFilter === "with"
+                            ? "bg-brand-500 text-white border-brand-500 shadow-sm"
+                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    }`}
+                >
+                    С возвратом
+                </button>
             </div>
 
-            {/* Return Modal */}
-            {selectedItem && (
-                <ReturnModal
-                    isOpen={returnModalOpen}
-                    onClose={() => {
-                        setReturnModalOpen(false);
-                        setSelectedItem(null);
-                    }}
-                    onReturn={handleReturnItem}
-                    itemId={selectedItem.id}
-                    itemName={selectedItem.name}
-                />
-            )}
+            {/* Table */}
+            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+                <div className="max-w-full overflow-x-auto">
+                    <Table>
+                        <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                            <TableRow>
+                                <TableCell
+                                    isHeader
+                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                >
+                                    #
+                                </TableCell>
+                                <TableCell
+                                    isHeader
+                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                >
+                                    Прораб
+                                </TableCell>
+                                <TableCell
+                                    isHeader
+                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                >
+                                    Материалы
+                                </TableCell>
+                                {activeFilter === "with" && (
+                                    <>
+                                        <TableCell
+                                            isHeader
+                                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                        >
+                                            Ожидаемая дата возврата
+                                        </TableCell>
+                                        <TableCell
+                                            isHeader
+                                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                        >
+                                            Статус
+                                        </TableCell>
+                                        <TableCell
+                                            isHeader
+                                            className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                        >
+                                            Действия
+                                        </TableCell>
+                                    </>
+                                )}
+                                <TableCell
+                                    isHeader
+                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                >
+                                    Дата создания
+                                </TableCell>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {issues.map((issue, index) => (
+                                <TableRow
+                                    key={issue.id}
+                                    className="border-b border-gray-100 dark:border-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+                                >
+                                    <TableCell className="px-5 py-4 font-medium text-gray-900 dark:text-white">
+                                        {index + 1}
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                        <div>
+                                            <div className="font-medium text-gray-900 dark:text-white">
+                                                {issue.foreman_name}
+                                            </div>
+                                            {issue.comments && (
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    {issue.comments}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                        <div className="space-y-1">
+                                            {issue.items.map((item, index) => (
+                                                <div
+                                                    key={index}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    <span className="text-sm">
+                                                        {item.material_name} x{" "}
+                                                        {Math.round(
+                                                            item.quantity
+                                                        )}
+                                                    </span>
+                                                    {activeFilter ===
+                                                        "with" && (
+                                                        <span
+                                                            className={`px-2 py-1 text-xs rounded-full ${getConditionTypeColor(
+                                                                item.condition_type
+                                                            )}`}
+                                                        >
+                                                            {getConditionTypeText(
+                                                                parseInt(
+                                                                    item.condition_type
+                                                                )
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                    {item.returned && (
+                                                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                                                            Возвращено
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </TableCell>
+                                    {activeFilter === "with" && (
+                                        <>
+                                            <TableCell className="px-5 py-4">
+                                                <div
+                                                    className={`${
+                                                        isOverdue(
+                                                            issue.expected_return_date
+                                                        )
+                                                            ? "text-red-600 dark:text-red-400"
+                                                            : ""
+                                                    }`}
+                                                >
+                                                    {formatDate(
+                                                        issue.expected_return_date
+                                                    )}
+                                                    {isOverdue(
+                                                        issue.expected_return_date
+                                                    ) && (
+                                                        <div className="text-xs text-red-500">
+                                                            Просрочено
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="px-5 py-4">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-sm">
+                                                        {
+                                                            issue.items[0]
+                                                                .actual_return_date
+                                                        }
+                                                    </span>
+                                                    {issue.items.some(
+                                                        (item) =>
+                                                            item.actual_return_date
+                                                    ) ? (
+                                                        <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
+                                                            Возвращено
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300">
+                                                            Не возвращено
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="px-5 py-4">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {issue.items.map(
+                                                        (item, itemIndex) => (
+                                                            <Button
+                                                                key={itemIndex}
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    handleReturnClick(
+                                                                        item.id,
+                                                                        item.material_name
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    item.actual_return_date !==
+                                                                    null
+                                                                }
+                                                                className={
+                                                                    item.returned
+                                                                        ? "opacity-50 cursor-not-allowed"
+                                                                        : ""
+                                                                }
+                                                            >
+                                                                {item.actual_return_date
+                                                                    ? "Возврат"
+                                                                    : "Возврат"}
+                                                            </Button>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        </>
+                                    )}
+                                    <TableCell className="px-5 py-4">
+                                        {issue.created_at}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Return Modal */}
+                {selectedItem && (
+                    <ReturnModal
+                        isOpen={returnModalOpen}
+                        onClose={() => {
+                            setReturnModalOpen(false);
+                            setSelectedItem(null);
+                        }}
+                        onReturn={handleReturnItem}
+                        itemId={selectedItem.id}
+                        itemName={selectedItem.name}
+                    />
+                )}
+            </div>
         </div>
     );
 }

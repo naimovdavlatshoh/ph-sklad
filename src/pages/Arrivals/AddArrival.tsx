@@ -296,7 +296,7 @@ export default function AddArrival({
     const totalSum = calculateTotalSum();
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} className="max-w-3xl">
+        <Modal isOpen={isOpen} onClose={handleClose} className="max-w-5xl">
             <div className="p-6">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
                     Добавить новый приход
@@ -417,12 +417,18 @@ export default function AddArrival({
                                             </label>
                                             <InputField
                                                 type="number"
-                                                value={item.amount}
+                                                value={
+                                                    item.amount === 0
+                                                        ? ""
+                                                        : item.amount
+                                                }
                                                 onChange={(e) =>
                                                     handleItemChange(
                                                         index,
                                                         "amount",
-                                                        parseInt(e.target.value)
+                                                        parseInt(
+                                                            e.target.value
+                                                        ) || 0
                                                     )
                                                 }
                                                 placeholder="0"
@@ -437,12 +443,18 @@ export default function AddArrival({
                                             </label>
                                             <InputField
                                                 type="number"
-                                                value={item.price}
+                                                value={
+                                                    item.price === 0
+                                                        ? ""
+                                                        : item.price
+                                                }
                                                 onChange={(e) =>
                                                     handleItemChange(
                                                         index,
                                                         "price",
-                                                        parseInt(e.target.value)
+                                                        parseInt(
+                                                            e.target.value
+                                                        ) || 0
                                                     )
                                                 }
                                                 placeholder="0"
@@ -456,7 +468,7 @@ export default function AddArrival({
                                                 <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
                                                     Общая сумма
                                                 </label>
-                                                <div className="px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-semibold text-gray-900 dark:text-white">
+                                                <div className="px-3 h-[44px] flex items-center bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-semibold text-gray-900 dark:text-white">
                                                     {(
                                                         item.amount * item.price
                                                     ).toLocaleString()}{" "}
