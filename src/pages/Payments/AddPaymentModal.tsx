@@ -7,6 +7,7 @@ import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import TextArea from "../../components/form/input/TextArea";
 import Label from "../../components/form/Label";
+import { formatCurrency } from "../../utils/numberFormat";
 import toast from "react-hot-toast";
 
 interface AddPaymentModalProps {
@@ -18,7 +19,7 @@ interface AddPaymentModalProps {
 interface Arrival {
     arrival_id: string;
     user_name: string;
-    supplier_name: string;
+    invoice_number: string;
     total_price: string;
     comments: string;
     created_at: string;
@@ -139,9 +140,7 @@ export function AddPaymentModal({
             console.error("Payment creation error:", error);
 
             // Backend dan kelgan xato xabari
-            const errorMessage =
-
-                "Произошла ошибка при создании платежа";
+            const errorMessage = "Произошла ошибка при создании платежа";
 
             toast.error(errorMessage);
 
@@ -179,25 +178,36 @@ export function AddPaymentModal({
                         </Label>
                         <Select
                             options={(() => {
-                                const filteredArrivals =
+                                const safeArrivals =
                                     arrivals?.filter(
                                         (arrival) =>
-                                            arrival &&
-                                            arrival.arrival_id &&
-                                            arrival.supplier_name
+                                            arrival && arrival.arrival_id
                                     ) || [];
 
-                                const options = filteredArrivals.map(
-                                    (arrival) => ({
-                                        value: parseInt(arrival.arrival_id),
-                                        label: `#${arrival.arrival_id} - ${arrival.supplier_name} - ${arrival.total_price} сум`,
-                                    })
-                                );
+                                const options = safeArrivals.map((arrival) => {
+                                    const labelSupplier =
+                                        (arrival as any)?.invoice_number ||
+                                        (arrival as any)?.user_name ||
+                                        "";
+                                    const labelTotal = (arrival as any)
+                                        ?.total_price
+                                        ? formatCurrency(
+                                              (arrival as any)?.total_price
+                                          )
+                                        : "";
+                                    const label = `#${arrival.arrival_id}${
+                                        labelSupplier
+                                            ? ` - ${labelSupplier}`
+                                            : ""
+                                    }${labelTotal ? ` - ${labelTotal}` : ""}`;
 
-                                console.log(
-                                    "Filtered Arrivals:",
-                                    filteredArrivals
-                                );
+                                    return {
+                                        value: parseInt(arrival.arrival_id),
+                                        label,
+                                    };
+                                });
+
+                                console.log("Arrivals (safe):", safeArrivals);
                                 console.log("Select Options:", options);
 
                                 return options;

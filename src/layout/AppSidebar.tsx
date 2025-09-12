@@ -9,6 +9,7 @@ import { SiMaterialformkdocs } from "react-icons/si";
 import { GrUserWorker } from "react-icons/gr";
 import { HiOutlineUsers } from "react-icons/hi2";
 import { GiReturnArrow } from "react-icons/gi";
+import { PiSealWarningLight } from "react-icons/pi";
 
 // Assume these icons are imported from an icon library
 import {
@@ -85,6 +86,12 @@ const navItems: NavItem[] = [
         name: "Выдача",
         icon: <SiMaterialformkdocs />,
         path: "/materialsissues",
+        roles: [1, 2], // Admin va Director
+    },
+    {
+        name: "Списание",
+        icon: <PiSealWarningLight />,
+        path: "/writeoff",
         roles: [1, 2], // Admin va Director
     },
     {

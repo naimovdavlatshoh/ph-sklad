@@ -15,10 +15,11 @@ interface Foreman {
 }
 
 interface Material {
-    material_id: number;
+    material_id: string | number; // API dan string keladi, lekin biz number ishlatamiz
     material_name: string;
     category_name: string;
     unit_name: string;
+    return_type: string; // "1" yoki "2"
 }
 
 interface MaterialIssueItem {
@@ -43,6 +44,7 @@ export default function CreateMaterialIssuance({
         foreman_id: "",
         expected_return_date: "",
         comments: "",
+        return_type: 0, // 1 for vazvratnoy, 2 for bez vazvrat
     });
     const [items, setItems] = useState<MaterialIssueItem[]>([
         {
@@ -55,6 +57,7 @@ export default function CreateMaterialIssuance({
     const [loading, setLoading] = useState(false);
     const [foremen, setForemen] = useState<Foreman[]>([]);
     const [materials, setMaterials] = useState<Material[]>([]);
+    const [filteredMaterials, setFilteredMaterials] = useState<Material[]>([]);
     const [searchingForemen, setSearchingForemen] = useState(false);
     const [searchingMaterials, setSearchingMaterials] = useState(false);
 
@@ -85,10 +88,37 @@ export default function CreateMaterialIssuance({
             const materialsData =
                 response?.result || response?.data?.result || [];
             setMaterials(materialsData);
+            setFilteredMaterials(materialsData);
         } catch (error) {
             console.error("Error fetching materials:", error);
         }
     }, []);
+
+    // Filter materials based on return type
+    const filterMaterialsByReturnType = useCallback(
+        (materialsList: Material[], returnType: number) => {
+            if (!returnType) {
+                return materialsList;
+            }
+            return materialsList.filter(
+                (material) => material.return_type === returnType.toString()
+            );
+        },
+        []
+    );
+
+    // Update filtered materials when return type changes
+    useEffect(() => {
+        if (formData.return_type) {
+            const filtered = filterMaterialsByReturnType(
+                materials,
+                formData.return_type
+            );
+            setFilteredMaterials(filtered);
+        } else {
+            setFilteredMaterials(materials);
+        }
+    }, [formData.return_type, materials, filterMaterialsByReturnType]);
 
     const handleForemanSearch = useCallback(
         async (keyword: string) => {
@@ -130,12 +160,30 @@ export default function CreateMaterialIssuance({
     const handleMaterialSearch = useCallback(
         async (keyword: string) => {
             if (!keyword.trim()) {
-                fetchMaterials();
+                // Reset to filtered materials based on return type
+                if (formData.return_type) {
+                    const filtered = filterMaterialsByReturnType(
+                        materials,
+                        formData.return_type
+                    );
+                    setFilteredMaterials(filtered);
+                } else {
+                    setFilteredMaterials(materials);
+                }
                 return;
             }
 
             if (keyword.trim().length < 3) {
-                fetchMaterials();
+                // Reset to filtered materials based on return type
+                if (formData.return_type) {
+                    const filtered = filterMaterialsByReturnType(
+                        materials,
+                        formData.return_type
+                    );
+                    setFilteredMaterials(filtered);
+                } else {
+                    setFilteredMaterials(materials);
+                }
                 return;
             }
 
@@ -151,6 +199,16 @@ export default function CreateMaterialIssuance({
                     const searchResults =
                         response?.data?.result || response?.result || [];
                     setMaterials(searchResults);
+                    // Apply return type filter to search results
+                    if (formData.return_type) {
+                        const filtered = filterMaterialsByReturnType(
+                            searchResults,
+                            formData.return_type
+                        );
+                        setFilteredMaterials(filtered);
+                    } else {
+                        setFilteredMaterials(searchResults);
+                    }
                 } else {
                     fetchMaterials();
                 }
@@ -161,7 +219,12 @@ export default function CreateMaterialIssuance({
                 setSearchingMaterials(false);
             }
         },
-        [fetchMaterials]
+        [
+            fetchMaterials,
+            formData.return_type,
+            materials,
+            filterMaterialsByReturnType,
+        ]
     );
 
     const handleInputChange = (
@@ -177,7 +240,7 @@ export default function CreateMaterialIssuance({
     const handleSelectChange = (name: string, value: string) => {
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: name === "return_type" ? parseInt(value) : value,
         }));
     };
 
@@ -218,11 +281,41 @@ export default function CreateMaterialIssuance({
         }
     };
 
+    // Material return_type tekshirish funksiyasi
+    const getSelectedMaterial = (materialId: number): Material | undefined => {
+        // Avval filteredMaterials dan qidirish, keyin materials dan
+        const foundInFiltered = filteredMaterials.find(
+            (material) =>
+                material.material_id === materialId ||
+                material.material_id === materialId.toString()
+        );
+        const foundInAll = materials.find(
+            (material) =>
+                material.material_id === materialId ||
+                material.material_id === materialId.toString()
+        );
+
+        return foundInFiltered || foundInAll;
+    };
+
+    // Material return_type === "1" ekanligini tekshirish
+    const shouldShowConditionFields = (materialId: number): boolean => {
+        if (materialId === 0) return false; // Agar material tanlanmagan bo'lsa
+        const material = getSelectedMaterial(materialId);
+        return material?.return_type === "1";
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.foreman_id || !formData.expected_return_date) {
+        if (!formData.foreman_id || formData.return_type === 0) {
             toast.error("Пожалуйста, заполните все обязательные поля");
+            return;
+        }
+
+        // Faqat "Возвратный" tanlansa, sana kerak
+        if (formData.return_type === 1 && !formData.expected_return_date) {
+            toast.error("Пожалуйста, выберите ожидаемую дату возврата");
             return;
         }
 
@@ -237,14 +330,27 @@ export default function CreateMaterialIssuance({
         try {
             const response = await PostSimple("api/materialsissues/create", {
                 foreman_id: parseInt(formData.foreman_id),
-                expected_return_date: formData.expected_return_date,
+                expected_return_date:
+                    formData.return_type === 1
+                        ? formData.expected_return_date
+                        : undefined,
                 comments: formData.comments || undefined,
-                items: items.map((item) => ({
-                    material_id: item.material_id,
-                    quantity: item.quantity,
-                    condition_type: item.condition_type,
-                    condition_note: item.condition_note || undefined,
-                })),
+                items: items.map((item) => {
+                    const material = getSelectedMaterial(item.material_id);
+                    const itemData: any = {
+                        material_id: item.material_id,
+                        quantity: item.quantity,
+                    };
+
+                    // Faqat return_type === "1" bo'lganda condition ma'lumotlarini yuborish
+                    if (material?.return_type === "1") {
+                        itemData.condition_type = item.condition_type;
+                        itemData.condition_note =
+                            item.condition_note || undefined;
+                    }
+
+                    return itemData;
+                }),
             });
 
             if (response?.status === 200 || response?.data?.success) {
@@ -267,6 +373,7 @@ export default function CreateMaterialIssuance({
             foreman_id: "",
             expected_return_date: "",
             comments: "",
+            return_type: 0,
         });
         setItems([
             {
@@ -299,10 +406,16 @@ export default function CreateMaterialIssuance({
     }));
 
     // Prepare material options for Select component
-    const materialOptions = materials.map((material) => ({
+    const materialOptions = filteredMaterials.map((material) => ({
         value: material.material_id,
         label: `${material.material_name} (${material.unit_name})`,
     }));
+
+    // Return type options
+    const returnTypeOptions = [
+        { value: 1, label: "Возвратный" },
+        { value: 2, label: "Без возврата" },
+    ];
 
     // Condition type options
     const conditionOptions = [
@@ -334,7 +447,7 @@ export default function CreateMaterialIssuance({
                             Основная информация
                         </h4>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                             <div>
                                 <Label htmlFor="foreman-select">Прораб *</Label>
                                 <Select
@@ -352,13 +465,30 @@ export default function CreateMaterialIssuance({
                             </div>
 
                             <div>
-                                <DatePicker
-                                    id="expected-return-date"
-                                    label="Ожидаемая дата возврата *"
-                                    placeholder="Выберите дату"
-                                    onChange={handleDateChange}
+                                <Label htmlFor="return-type-select">
+                                    Тип возврата *
+                                </Label>
+                                <Select
+                                    options={returnTypeOptions}
+                                    placeholder="Выберите тип возврата"
+                                    onChange={(value) =>
+                                        handleSelectChange("return_type", value)
+                                    }
+                                    defaultValue={formData.return_type.toString()}
+                                    className="z-50 relative"
                                 />
                             </div>
+
+                            {formData.return_type === 1 && (
+                                <div>
+                                    <DatePicker
+                                        id="expected-return-date"
+                                        label="Ожидаемая дата возврата *"
+                                        placeholder="Выберите дату"
+                                        onChange={handleDateChange}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -404,127 +534,162 @@ export default function CreateMaterialIssuance({
                         </div>
 
                         <div className="space-y-4 pb-8">
-                            {items.map((item, index) => (
-                                <div
-                                    key={index}
-                                    className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm"
-                                >
-                                    <div className="flex justify-between items-center mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-brand-100 dark:bg-brand-900 rounded-full flex items-center justify-center">
-                                                <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">
-                                                    {index + 1}
-                                                </span>
+                            {items.map((item, index) => {
+                                const showConditionFields =
+                                    shouldShowConditionFields(item.material_id);
+
+                                return (
+                                    <div
+                                        key={index}
+                                        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm"
+                                    >
+                                        <div className="flex justify-between items-center mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 bg-brand-100 dark:bg-brand-900 rounded-full flex items-center justify-center">
+                                                    <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">
+                                                        {index + 1}
+                                                    </span>
+                                                </div>
+                                                <h5 className="text-base font-semibold text-gray-900 dark:text-white">
+                                                    Материал {index + 1}
+                                                </h5>
                                             </div>
-                                            <h5 className="text-base font-semibold text-gray-900 dark:text-white">
-                                                Материал {index + 1}
-                                            </h5>
+                                            {items.length > 1 && (
+                                                <Button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        removeItem(index)
+                                                    }
+                                                    variant="danger"
+                                                    size="xs"
+                                                >
+                                                    Удалить
+                                                </Button>
+                                            )}
                                         </div>
-                                        {items.length > 1 && (
-                                            <Button
-                                                type="button"
-                                                onClick={() =>
-                                                    removeItem(index)
-                                                }
-                                                variant="danger"
-                                                size="xs"
-                                            >
-                                                Удалить
-                                            </Button>
-                                        )}
+
+                                        <div
+                                            className={`grid grid-cols-1 md:grid-cols-2 ${
+                                                showConditionFields
+                                                    ? "lg:grid-cols-4"
+                                                    : "lg:grid-cols-2"
+                                            } gap-4`}
+                                        >
+                                            <div>
+                                                <Label
+                                                    htmlFor={`material-${index}`}
+                                                >
+                                                    Материал *
+                                                </Label>
+                                                <Select
+                                                    options={
+                                                        materialOptions as {
+                                                            value: number;
+                                                            label: string;
+                                                        }[]
+                                                    }
+                                                    placeholder="Выберите материал"
+                                                    onChange={(value) =>
+                                                        handleItemChange(
+                                                            index,
+                                                            "material_id",
+                                                            parseInt(value)
+                                                        )
+                                                    }
+                                                    defaultValue={item.material_id.toString()}
+                                                    className="mt-2 z-50 relative"
+                                                    searchable={true}
+                                                    onSearch={
+                                                        handleMaterialSearch
+                                                    }
+                                                    searching={
+                                                        searchingMaterials
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <Label
+                                                    htmlFor={`quantity-${index}`}
+                                                >
+                                                    Количество *
+                                                </Label>
+                                                <InputField
+                                                    type="number"
+                                                    value={item.quantity}
+                                                    onChange={(e) =>
+                                                        handleItemChange(
+                                                            index,
+                                                            "quantity",
+                                                            parseInt(
+                                                                e.target.value
+                                                            )
+                                                        )
+                                                    }
+                                                    min="1"
+                                                    required
+                                                    className="mt-2"
+                                                />
+                                            </div>
+
+                                            {/* Состояние va Примечание о состоянии faqat return_type === "1" bo'lganda ko'rinadi */}
+                                            {showConditionFields && (
+                                                <>
+                                                    <div>
+                                                        <Label
+                                                            htmlFor={`condition-${index}`}
+                                                        >
+                                                            Состояние *
+                                                        </Label>
+                                                        <Select
+                                                            options={
+                                                                conditionOptions
+                                                            }
+                                                            placeholder="Выберите состояние"
+                                                            onChange={(value) =>
+                                                                handleItemChange(
+                                                                    index,
+                                                                    "condition_type",
+                                                                    parseInt(
+                                                                        value
+                                                                    )
+                                                                )
+                                                            }
+                                                            defaultValue={item.condition_type.toString()}
+                                                            className="mt-2 z-50 relative"
+                                                        />
+                                                    </div>
+
+                                                    <div>
+                                                        <Label
+                                                            htmlFor={`condition-note-${index}`}
+                                                        >
+                                                            Примечание о
+                                                            состоянии
+                                                        </Label>
+                                                        <InputField
+                                                            type="text"
+                                                            value={
+                                                                item.condition_note
+                                                            }
+                                                            onChange={(e) =>
+                                                                handleItemChange(
+                                                                    index,
+                                                                    "condition_note",
+                                                                    e.target
+                                                                        .value
+                                                                )
+                                                            }
+                                                            placeholder="Описание состояния"
+                                                            className="mt-2"
+                                                        />
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div>
-                                            <Label
-                                                htmlFor={`material-${index}`}
-                                            >
-                                                Материал *
-                                            </Label>
-                                            <Select
-                                                options={materialOptions}
-                                                placeholder="Выберите материал"
-                                                onChange={(value) =>
-                                                    handleItemChange(
-                                                        index,
-                                                        "material_id",
-                                                        parseInt(value)
-                                                    )
-                                                }
-                                                defaultValue={item.material_id.toString()}
-                                                className="mt-2 z-50 relative"
-                                                searchable={true}
-                                                onSearch={handleMaterialSearch}
-                                                searching={searchingMaterials}
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <Label
-                                                htmlFor={`quantity-${index}`}
-                                            >
-                                                Количество *
-                                            </Label>
-                                            <InputField
-                                                type="number"
-                                                value={item.quantity}
-                                                onChange={(e) =>
-                                                    handleItemChange(
-                                                        index,
-                                                        "quantity",
-                                                        parseInt(e.target.value)
-                                                    )
-                                                }
-                                                min="1"
-                                                required
-                                                className="mt-2"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <Label
-                                                htmlFor={`condition-${index}`}
-                                            >
-                                                Состояние *
-                                            </Label>
-                                            <Select
-                                                options={conditionOptions}
-                                                placeholder="Выберите состояние"
-                                                onChange={(value) =>
-                                                    handleItemChange(
-                                                        index,
-                                                        "condition_type",
-                                                        parseInt(value)
-                                                    )
-                                                }
-                                                defaultValue={item.condition_type.toString()}
-                                                className="mt-2 z-50 relative"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <Label
-                                                htmlFor={`condition-note-${index}`}
-                                            >
-                                                Примечание о состоянии
-                                            </Label>
-                                            <InputField
-                                                type="text"
-                                                value={item.condition_note}
-                                                onChange={(e) =>
-                                                    handleItemChange(
-                                                        index,
-                                                        "condition_note",
-                                                        e.target.value
-                                                    )
-                                                }
-                                                placeholder="Описание состояния"
-                                                className="mt-2"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
 

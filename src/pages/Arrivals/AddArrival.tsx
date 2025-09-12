@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Modal } from "../../components/ui/modal";
 import { PostSimple, GetDataSimple } from "../../service/data";
 import { toast } from "react-hot-toast";
 import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
+import Label from "../../components/form/Label";
 
 interface Supplier {
     supplier_id: number;
@@ -43,6 +44,8 @@ export default function AddArrival({
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [materials, setMaterials] = useState<Material[]>([]);
     const [loading, setLoading] = useState(false);
+    const [searchingSuppliers, setSearchingSuppliers] = useState(false);
+    const [searchingMaterials, setSearchingMaterials] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -73,12 +76,93 @@ export default function AddArrival({
         }
     };
 
+    const handleSupplierSearch = useCallback(
+        async (keyword: string) => {
+            if (!keyword.trim()) {
+                fetchSuppliers();
+                return;
+            }
+
+            if (keyword.trim().length < 3) {
+                fetchSuppliers();
+                return;
+            }
+
+            setSearchingSuppliers(true);
+            try {
+                const response: any = await PostSimple(
+                    `api/supplier/search?keyword=${encodeURIComponent(
+                        keyword
+                    )}&page=1&limit=50`
+                );
+
+                if (response?.status === 200 || response?.data?.success) {
+                    const searchResults =
+                        response?.data?.result || response?.result || [];
+                    setSuppliers(searchResults);
+                } else {
+                    fetchSuppliers();
+                }
+            } catch (error) {
+                console.error("Supplier search error:", error);
+                fetchSuppliers();
+            } finally {
+                setSearchingSuppliers(false);
+            }
+        },
+        [fetchSuppliers]
+    );
+
+    const handleMaterialSearch = useCallback(
+        async (keyword: string) => {
+            if (!keyword.trim()) {
+                fetchMaterials();
+                return;
+            }
+
+            if (keyword.trim().length < 3) {
+                fetchMaterials();
+                return;
+            }
+
+            setSearchingMaterials(true);
+            try {
+                const response: any = await PostSimple(
+                    `api/materials/search?keyword=${encodeURIComponent(
+                        keyword
+                    )}&page=1&limit=50`
+                );
+
+                if (response?.status === 200 || response?.data?.success) {
+                    const searchResults =
+                        response?.data?.result || response?.result || [];
+                    setMaterials(searchResults);
+                } else {
+                    fetchMaterials();
+                }
+            } catch (error) {
+                console.error("Material search error:", error);
+                fetchMaterials();
+            } finally {
+                setSearchingMaterials(false);
+            }
+        },
+        [fetchMaterials]
+    );
+
     const handleInputChange = (
         e: React.ChangeEvent<
             HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
         >
     ) => {
         const { name, value } = e.target;
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleSelectChange = (name: string, value: string) => {
         setFormData((prev) => ({
             ...prev,
             [name]: value,
@@ -202,6 +286,15 @@ export default function AddArrival({
         onClose();
     };
 
+    // Calculate total sum
+    const calculateTotalSum = () => {
+        return items.reduce((total, item) => {
+            return total + item.amount * item.price;
+        }, 0);
+    };
+
+    const totalSum = calculateTotalSum();
+
     return (
         <Modal isOpen={isOpen} onClose={handleClose} className="max-w-3xl">
             <div className="p-6">
@@ -212,50 +305,30 @@ export default function AddArrival({
                 <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
-                            <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                            <Label htmlFor="supplier-select">
                                 <span className="text-red-500 mr-1">*</span>
                                 Поставщик
-                            </label>
-                            <div className="relative">
-                                <select
-                                    name="supplier_id"
-                                    value={formData.supplier_id}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer hover:border-gray-300 dark:hover:border-gray-500"
-                                >
-                                    <option value="">
-                                        Выберите поставщика
-                                    </option>
-                                    {suppliers.map((supplier) => (
-                                        <option
-                                            key={supplier.supplier_id}
-                                            value={supplier.supplier_id}
-                                        >
-                                            {supplier.supplier_name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                                    <svg
-                                        className="w-5 h-5 text-gray-400"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth={2}
-                                            d="M19 9l-7 7-7-7"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
+                            </Label>
+                            <Select
+                                options={suppliers.map((supplier) => ({
+                                    value: supplier.supplier_id,
+                                    label: supplier.supplier_name,
+                                }))}
+                                placeholder="Выберите поставщика"
+                                onChange={(value) =>
+                                    handleSelectChange("supplier_id", value)
+                                }
+                                defaultValue={formData.supplier_id}
+                                className="relative"
+                                style={{ zIndex: 1001 }}
+                                searchable={true}
+                                onSearch={handleSupplierSearch}
+                                searching={searchingSuppliers}
+                            />
                         </div>
 
                         <div className="space-y-3">
-                            <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                            <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
                                 Комментарии
                             </label>
                             <InputField
@@ -264,7 +337,7 @@ export default function AddArrival({
                                 value={formData.comments}
                                 onChange={handleInputChange}
                                 placeholder="Введите комментарии (не обязательно)"
-                                className="w-full px-4 py-4 h-[50px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
+                                className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
                             />
                         </div>
                     </div>
@@ -305,7 +378,7 @@ export default function AddArrival({
                                     key={index}
                                     className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800"
                                 >
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                         <div>
                                             <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
                                                 Материал
@@ -330,7 +403,11 @@ export default function AddArrival({
                                                         ? item.material_id.toString()
                                                         : ""
                                                 }
-                                                className="text-sm"
+                                                className="text-sm relative"
+                                                style={{ zIndex: 1000 - index }}
+                                                searchable={true}
+                                                onSearch={handleMaterialSearch}
+                                                searching={searchingMaterials}
                                             />
                                         </div>
 
@@ -374,19 +451,29 @@ export default function AddArrival({
                                             />
                                         </div>
 
-                                        <div className="flex items-end">
+                                        <div className="flex items-end gap-2">
+                                            <div className="flex-1">
+                                                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                                                    Общая сумма
+                                                </label>
+                                                <div className="px-3 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-semibold text-gray-900 dark:text-white">
+                                                    {(
+                                                        item.amount * item.price
+                                                    ).toLocaleString()}{" "}
+                                                    сум
+                                                </div>
+                                            </div>
                                             {items.length > 1 && (
-                                                <Button
+                                                <button
                                                     type="button"
-                                                    variant="danger"
                                                     onClick={() =>
                                                         removeItem(index)
                                                     }
-                                                    size="sm"
-                                                    className="px-3 py-2 text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                    className="w-8 h-8 flex items-center justify-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors mt-6"
+                                                    title="Удалить материал"
                                                 >
                                                     <svg
-                                                        className="w-4 h-4 mr-2"
+                                                        className="w-4 h-4"
                                                         fill="none"
                                                         stroke="currentColor"
                                                         viewBox="0 0 24 24"
@@ -398,14 +485,35 @@ export default function AddArrival({
                                                             d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                                         />
                                                     </svg>
-                                                    Удалить
-                                                </Button>
+                                                </button>
                                             )}
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
+
+                        {/* Total Sum Display */}
+                        {items.length > 0 && (
+                            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                            Общая сумма
+                                        </h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            {items.length} материал(ов) •{" "}
+                                            {totalSum.toLocaleString()} сум
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                            {totalSum.toLocaleString()} сум
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-600">

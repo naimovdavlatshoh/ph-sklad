@@ -14,6 +14,7 @@ interface SelectProps {
     searchable?: boolean;
     onSearch?: (keyword: string) => void;
     searching?: boolean;
+    style?: React.CSSProperties;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -25,6 +26,7 @@ const Select: React.FC<SelectProps> = ({
     searchable = false,
     onSearch,
     searching = false,
+    style,
 }) => {
     // Manage the selected value and dropdown state
     const [selectedValue, setSelectedValue] = useState<string>(defaultValue);
@@ -35,10 +37,16 @@ const Select: React.FC<SelectProps> = ({
     );
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Update filtered options when options change
+    // Update filtered options when options or search term change
     useEffect(() => {
         if (!options || options.length === 0) {
             setFilteredOptions([]);
+            return;
+        }
+
+        // If external search handler is provided, assume options are already filtered on the server
+        if (onSearch) {
+            setFilteredOptions(options);
             return;
         }
 
@@ -50,7 +58,12 @@ const Select: React.FC<SelectProps> = ({
             );
             setFilteredOptions(filtered);
         }
-    }, [options, searchTerm]);
+    }, [options, searchTerm, onSearch]);
+
+    // Keep internal selected value in sync with defaultValue prop
+    useEffect(() => {
+        setSelectedValue(defaultValue);
+    }, [defaultValue]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -92,9 +105,14 @@ const Select: React.FC<SelectProps> = ({
     };
 
     const toggleDropdown = () => {
-        setIsOpen(!isOpen);
-        if (!isOpen) {
+        const willOpen = !isOpen;
+        setIsOpen(willOpen);
+        if (willOpen) {
+            // Clear local search and request full options when using external search
             setSearchTerm("");
+            if (onSearch) {
+                onSearch("");
+            }
         }
     };
 
@@ -103,7 +121,7 @@ const Select: React.FC<SelectProps> = ({
     );
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative" ref={dropdownRef} style={style}>
             {/* Custom Select Button */}
             <button
                 type="button"

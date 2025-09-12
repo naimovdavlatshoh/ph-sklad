@@ -28,6 +28,7 @@ import SupplierList from "./pages/Suppliers";
 import ForemanList from "./pages/Foremen";
 import ArrivalList from "./pages/Arrivals";
 import { MaterialsIssuesList } from "./pages/MaterialsIssues";
+import { WriteOff } from "./pages/WriteOff";
 import { BalanceList } from "./pages/Balance";
 import { ReturnList } from "./pages/Returns";
 import { PaymentList } from "./pages/Payments";
@@ -118,6 +119,8 @@ export default function App() {
                             <Route path="/returns" element={<ReturnList />} />
 
                             <Route path="/payments" element={<PaymentList />} />
+
+                            <Route path="/writeoff" element={<WriteOff />} />
 
                             {/* Ui Elements */}
                             <Route path="/alerts" element={<Alerts />} />
