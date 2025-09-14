@@ -123,8 +123,9 @@ export function PaymentTable({
                                     isHeader
                                     className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                 >
-                                    Пользователь
+                                    Номер счета
                                 </TableCell>
+
                                 <TableCell
                                     isHeader
                                     className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
@@ -165,6 +166,12 @@ export function PaymentTable({
                                     isHeader
                                     className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                                 >
+                                    Пользователь
+                                </TableCell>
+                                <TableCell
+                                    isHeader
+                                    className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                                >
                                     Дата создания
                                 </TableCell>
                                 <TableCell
@@ -187,19 +194,20 @@ export function PaymentTable({
                                         </span>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
-                                        <div className="font-medium text-gray-900 dark:text-white">
-                                            {payment.user_name}
-                                        </div>
+                                        <span className="text-sm text-gray-900 dark:text-white">
+                                            {payment.invoice_number}
+                                        </span>
                                     </TableCell>
+
                                     <TableCell className="px-5 py-4">
                                         <div>
-                                            <div className="font-medium text-gray-900 dark:text-white">
+                                            <div className="text-sm text-gray-900 dark:text-white">
                                                 {payment.supplier_name}
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
-                                        <span className="font-medium text-gray-900 dark:text-white">
+                                        <span className="text-sm text-gray-900 dark:text-white">
                                             {formatAmount(
                                                 payment.payment_amount,
                                                 payment.cash_type_text
@@ -253,6 +261,11 @@ export function PaymentTable({
                                                     Нет комментария
                                                 </span>
                                             )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="px-5 py-4">
+                                        <div className="text-sm text-gray-900 dark:text-white">
+                                            {payment.user_name}
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">

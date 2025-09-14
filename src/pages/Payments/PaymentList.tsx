@@ -13,6 +13,7 @@ import { AddPaymentModal } from "./AddPaymentModal";
 import { PaymentTable } from "./PaymentTable";
 
 export interface Payment {
+    invoice_number: string;
     payment_id: string;
     user_id: string;
     user_name: string;
@@ -138,7 +139,7 @@ export default function PaymentList() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Платежи
+                    Касса-Склад
                 </h1>
                 <Button onClick={handleAddPayment}>Добавить платеж</Button>
             </div>

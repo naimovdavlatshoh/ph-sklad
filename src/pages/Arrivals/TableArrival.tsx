@@ -42,6 +42,30 @@ const CreditCardIcon = ({ className }: { className?: string }) => (
     </svg>
 );
 
+// Eye icon SVG
+const EyeIcon = ({ className }: { className?: string }) => (
+    <svg
+        className={className}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+        />
+    </svg>
+);
+
 interface PaymentHistory {
     payment_id: string;
     user_id: string;
@@ -53,6 +77,16 @@ interface PaymentHistory {
     cash_type: string;
     cash_type_text: string;
     payment_dollar_rate: string;
+    created_at: string;
+}
+
+interface ArrivalItem {
+    arrival_item_id: string;
+    arrival_id: string;
+    material_id: string;
+    material_name: string;
+    amount: string;
+    price: string;
     created_at: string;
 }
 
@@ -71,6 +105,7 @@ interface Arrival {
     created_at: string;
     total_payments: string;
     payment_history: PaymentHistory[];
+    items?: ArrivalItem[];
 }
 
 interface TableArrivalProps {
@@ -90,6 +125,12 @@ export default function TableArrival({
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
     const [selectedPaymentArrival, setSelectedPaymentArrival] =
         useState<Arrival | null>(null);
+    const [itemsModalOpen, setItemsModalOpen] = useState(false);
+    const [selectedItemsArrival, setSelectedItemsArrival] =
+        useState<Arrival | null>(null);
+    const [arrivalItems, setArrivalItems] = useState<ArrivalItem[]>([]);
+    const [loadingItems, setLoadingItems] = useState(false);
+    const [activeTab, setActiveTab] = useState<"items" | "payments">("items");
 
     const handleDelete = async () => {
         if (!selectedArrival) return;
@@ -116,6 +157,48 @@ export default function TableArrival({
 
     const handlePaymentSuccess = () => {
         changeStatus(); // Refresh the arrivals list
+    };
+
+    const handleItemsClick = async (arrival: Arrival) => {
+        setSelectedItemsArrival(arrival);
+        setItemsModalOpen(true);
+        setLoadingItems(true);
+        setActiveTab("items"); // Reset to items tab
+
+        try {
+            // Use items from arrival data if available, otherwise fetch from backend
+            if (arrival.items && arrival.items.length > 0) {
+                setArrivalItems(arrival.items);
+                setLoadingItems(false);
+            } else {
+                // Fetch items data from backend
+                const response = await fetch(
+                    `/api/arrival/items/${arrival.arrival_id}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem(
+                                "token"
+                            )}`,
+                            "Content-Type": "application/json",
+                        },
+                    }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setArrivalItems(data.items || []);
+                } else {
+                    toast.error("Ошибка при загрузке товаров");
+                    setArrivalItems([]);
+                }
+            }
+        } catch (error) {
+            toast.error("Ошибка при загрузке товаров");
+            setArrivalItems([]);
+        } finally {
+            setLoadingItems(false);
+        }
     };
 
     const formatDate = (dateString: string) => {
@@ -181,9 +264,6 @@ export default function TableArrival({
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                     Общая сумма
                                 </th>
-                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                    Статус оплаты
-                                </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">
                                     Комментарии
                                 </th>
@@ -200,7 +280,7 @@ export default function TableArrival({
                                 <tr>
                                     <td
                                         className="text-center py-8 text-gray-500 dark:text-gray-400"
-                                        colSpan={8}
+                                        colSpan={7}
                                     >
                                         Приходы не найдены
                                     </td>
@@ -236,26 +316,135 @@ export default function TableArrival({
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
                                             {arrival.user_name}
                                         </td>
-                                        <td className="px-5 py-4 text-sm text-black dark:text-white font-medium">
-                                            {parseInt(
-                                                arrival.total_price
-                                            ).toLocaleString()}{" "}
-                                            сум
-                                        </td>
-                                        <td className="px-5 py-4 text-sm">
-                                            <span
-                                                className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                                                    arrival.payment_status ===
-                                                    "3"
-                                                        ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-                                                        : arrival.payment_status ===
-                                                          "2"
-                                                        ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
-                                                        : "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-                                                }`}
-                                            >
-                                                {arrival.payment_status_text}
-                                            </span>
+                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
+                                            <div className="space-y-2">
+                                                <div className="font-medium">
+                                                    {parseInt(
+                                                        arrival.total_payments ||
+                                                            "0"
+                                                    ) > 0 &&
+                                                    parseInt(
+                                                        arrival.total_payments ||
+                                                            "0"
+                                                    ) <
+                                                        parseInt(
+                                                            arrival.total_price
+                                                        ) ? (
+                                                        // Qisman to'langan holatda
+                                                        <>
+                                                            <span className="text-green-600 dark:text-green-400">
+                                                                {parseInt(
+                                                                    arrival.total_payments ||
+                                                                        "0"
+                                                                ).toLocaleString()}
+                                                            </span>
+                                                            <span className="text-gray-500 dark:text-gray-400">
+                                                                {" "}
+                                                                /{" "}
+                                                            </span>
+                                                            <span className="text-red-600 dark:text-red-400">
+                                                                {parseInt(
+                                                                    arrival.total_price
+                                                                ).toLocaleString()}
+                                                            </span>
+                                                            <span className="text-gray-500 dark:text-gray-400">
+                                                                {" "}
+                                                                сум
+                                                            </span>
+                                                        </>
+                                                    ) : parseInt(
+                                                          arrival.total_payments ||
+                                                              "0"
+                                                      ) >=
+                                                      parseInt(
+                                                          arrival.total_price
+                                                      ) ? (
+                                                        // 100% to'langan holatda
+                                                        <span className="text-green-600 dark:text-green-400">
+                                                            {parseInt(
+                                                                arrival.total_price
+                                                            ).toLocaleString()}{" "}
+                                                            сум
+                                                        </span>
+                                                    ) : (
+                                                        // 0% to'lanmagan holatda
+                                                        <span className="text-red-600 dark:text-red-400">
+                                                            {parseInt(
+                                                                arrival.total_price
+                                                            ).toLocaleString()}{" "}
+                                                            сум
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700 relative">
+                                                    {/* To'langan qism - 100% bo'lsa yashil, aks holda sariq */}
+                                                    <div
+                                                        className={`h-2 absolute left-0 top-0 ${
+                                                            parseInt(
+                                                                arrival.total_payments ||
+                                                                    "0"
+                                                            ) >=
+                                                            parseInt(
+                                                                arrival.total_price
+                                                            )
+                                                                ? "bg-green-500 rounded-full"
+                                                                : "bg-yellow-500 rounded-l-full"
+                                                        }`}
+                                                        style={{
+                                                            width: `${Math.min(
+                                                                (parseInt(
+                                                                    arrival.total_payments ||
+                                                                        "0"
+                                                                ) /
+                                                                    parseInt(
+                                                                        arrival.total_price
+                                                                    )) *
+                                                                    100,
+                                                                100
+                                                            )}%`,
+                                                        }}
+                                                    ></div>
+                                                    {/* To'lanmagan qism - faqat 100% bo'lmagan holatda ko'rsatiladi */}
+                                                    {parseInt(
+                                                        arrival.total_payments ||
+                                                            "0"
+                                                    ) <
+                                                        parseInt(
+                                                            arrival.total_price
+                                                        ) && (
+                                                        <div
+                                                            className="h-2 rounded-r-full bg-red-500 absolute left-0 top-0"
+                                                            style={{
+                                                                width: `${
+                                                                    100 -
+                                                                    Math.min(
+                                                                        (parseInt(
+                                                                            arrival.total_payments ||
+                                                                                "0"
+                                                                        ) /
+                                                                            parseInt(
+                                                                                arrival.total_price
+                                                                            )) *
+                                                                            100,
+                                                                        100
+                                                                    )
+                                                                }%`,
+                                                                left: `${Math.min(
+                                                                    (parseInt(
+                                                                        arrival.total_payments ||
+                                                                            "0"
+                                                                    ) /
+                                                                        parseInt(
+                                                                            arrival.total_price
+                                                                        )) *
+                                                                        100,
+                                                                    100
+                                                                )}%`,
+                                                            }}
+                                                        ></div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-center">
                                             {arrival.comments &&
@@ -287,6 +476,20 @@ export default function TableArrival({
                                         </td>
                                         <td className="px-5 py-4 text-sm">
                                             <div className="flex items-center space-x-2">
+                                                <Button
+                                                    onClick={() =>
+                                                        handleItemsClick(
+                                                            arrival
+                                                        )
+                                                    }
+                                                    size="xs"
+                                                    variant="outline"
+                                                    startIcon={
+                                                        <EyeIcon className="w-4 h-4" />
+                                                    }
+                                                >
+                                                    {""}
+                                                </Button>
                                                 <Button
                                                     onClick={() =>
                                                         handlePaymentClick(
@@ -404,6 +607,268 @@ export default function TableArrival({
                     onPaymentSuccess={handlePaymentSuccess}
                 />
             )}
+
+            {/* Items Modal */}
+            <Modal
+                isOpen={itemsModalOpen}
+                onClose={() => {
+                    setItemsModalOpen(false);
+                    setSelectedItemsArrival(null);
+                    setArrivalItems([]);
+                    setActiveTab("items");
+                }}
+                className="max-w-4xl"
+            >
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            Детали прихода
+                        </h3>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {selectedItemsArrival?.invoice_number && (
+                                <span>
+                                    Инвойс:{" "}
+                                    {selectedItemsArrival.invoice_number}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Tab Navigation */}
+                    <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
+                        <nav className="-mb-px flex space-x-8">
+                            <button
+                                onClick={() => setActiveTab("items")}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                    activeTab === "items"
+                                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                                }`}
+                            >
+                                Товары
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("payments")}
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                                    activeTab === "payments"
+                                        ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                                }`}
+                            >
+                                История платежей
+                            </button>
+                        </nav>
+                    </div>
+
+                    {/* Tab Content */}
+                    {activeTab === "items" ? (
+                        loadingItems ? (
+                            <div className="flex items-center justify-center py-8">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <span className="ml-2 text-gray-600 dark:text-gray-400">
+                                    Загрузка...
+                                </span>
+                            </div>
+                        ) : arrivalItems.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                                Товары не найдены
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                                    <table className="w-full">
+                                        <thead className="bg-gray-50 dark:bg-gray-800">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                    #
+                                                </th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                    Материал
+                                                </th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                    Количество
+                                                </th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                    Цена за единицу
+                                                </th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                    Общая стоимость
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                                            {arrivalItems.map((item, index) => (
+                                                <tr
+                                                    key={item.arrival_item_id}
+                                                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                                                >
+                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                        {index + 1}
+                                                    </td>
+                                                    <td className="px-4 py-4 text-sm text-gray-900 dark:text-white">
+                                                        <div className="font-medium">
+                                                            {item.material_name}
+                                                        </div>
+                                                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                            ID:{" "}
+                                                            {item.material_id}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                        {parseFloat(
+                                                            item.amount
+                                                        ).toLocaleString()}
+                                                    </td>
+                                                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                        {parseInt(
+                                                            item.price
+                                                        ).toLocaleString()}{" "}
+                                                        сум
+                                                    </td>
+                                                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                                        {(
+                                                            parseFloat(
+                                                                item.amount
+                                                            ) *
+                                                            parseInt(item.price)
+                                                        ).toLocaleString()}{" "}
+                                                        сум
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Общее количество товаров:
+                                        </span>
+                                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                            {arrivalItems.length}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center mt-2">
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Общая стоимость:
+                                        </span>
+                                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                            {arrivalItems
+                                                .reduce(
+                                                    (total, item) =>
+                                                        total +
+                                                        parseFloat(
+                                                            item.amount
+                                                        ) *
+                                                            parseInt(
+                                                                item.price
+                                                            ),
+                                                    0
+                                                )
+                                                .toLocaleString()}{" "}
+                                            сум
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    ) : // Payments Tab
+                    selectedItemsArrival?.payment_history &&
+                      selectedItemsArrival.payment_history.length > 0 ? (
+                        <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                            <table className="w-full">
+                                <thead className="bg-gray-50 dark:bg-gray-800">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            #
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Пользователь
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Сумма
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Способ оплаты
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Тип валюты
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Дата
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                                    {selectedItemsArrival.payment_history.map(
+                                        (payment, index) => (
+                                            <tr
+                                                key={payment.payment_id}
+                                                className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                                            >
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    {index + 1}
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-gray-900 dark:text-white">
+                                                    <div className="font-medium">
+                                                        {payment.user_name}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    <div className="font-medium text-green-600 dark:text-green-400">
+                                                        {parseInt(
+                                                            payment.payment_amount
+                                                        ).toLocaleString()}{" "}
+                                                        {payment.cash_type_text}
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    {
+                                                        payment.payment_method_text
+                                                    }
+                                                </td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    {payment.cash_type_text}
+                                                </td>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                    <div className="text-sm">
+                                                        {formatDate(
+                                                            payment.created_at
+                                                        )}
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {formatTime(
+                                                            payment.created_at
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                            История платежей не найдена
+                        </div>
+                    )}
+
+                    <div className="flex justify-end mt-6">
+                        <Button
+                            onClick={() => {
+                                setItemsModalOpen(false);
+                                setSelectedItemsArrival(null);
+                                setArrivalItems([]);
+                            }}
+                            variant="outline"
+                        >
+                            Закрыть
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </>
     );
 }

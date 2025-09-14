@@ -10,6 +10,8 @@ import { GrUserWorker } from "react-icons/gr";
 import { HiOutlineUsers } from "react-icons/hi2";
 import { GiReturnArrow } from "react-icons/gi";
 import { PiSealWarningLight } from "react-icons/pi";
+import { TbBuildingWarehouse } from "react-icons/tb";
+
 
 // Assume these icons are imported from an icon library
 import {
@@ -77,8 +79,8 @@ const navItems: NavItem[] = [
         roles: [1, 2], // Admin va Director
     },
     {
-        name: "Приходы",
-        icon: <GrMoney />,
+        name: "Склад",
+        icon: <TbBuildingWarehouse />,
         path: "/arrivals",
         roles: [1, 2], // Admin va Director
     },
@@ -107,7 +109,7 @@ const navItems: NavItem[] = [
         roles: [1, 2], // Admin va Director
     },
     {
-        name: "Платежи",
+        name: "Касса-Склад",
         icon: <GrMoney />,
         path: "/payments",
         roles: [1, 2], // Admin va Director

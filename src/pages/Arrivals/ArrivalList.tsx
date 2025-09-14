@@ -212,7 +212,7 @@ export default function ArrivalList() {
                         searchQuery={searchQuery}
                         currentPage={page}
                         onPageChange={setPage}
-                      
+
                     />
                 );
             default:
@@ -223,13 +223,13 @@ export default function ArrivalList() {
     const getPageTitle = () => {
         switch (activeTab) {
             case "ostatki":
-                return "Остатки";
+                return "Склад";
             case "prixod":
-                return "Приходы";
+                return "Склад";
             case "rasxod":
-                return "Расходы";
+                return "Склад";
             default:
-                return "Приходы";
+                return "Склад";
         }
     };
 
