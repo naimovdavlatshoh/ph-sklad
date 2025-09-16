@@ -376,7 +376,7 @@ export default function TableArrival({
                                                         </span>
                                                     )}
                                                 </div>
-                                                <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700 relative">
+                                                <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700 relative overflow-hidden">
                                                     {/* To'langan qism - 100% bo'lsa yashil, aks holda sariq */}
                                                     <div
                                                         className={`h-2 absolute left-0 top-0 ${

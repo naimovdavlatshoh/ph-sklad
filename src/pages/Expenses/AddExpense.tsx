@@ -6,6 +6,7 @@ import {
     PostSimple,
 } from "../../service/data";
 import { toast } from "react-hot-toast";
+import { formatAmount } from "../../utils/numberFormat";
 import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
 import Label from "../../components/form/Label";
@@ -358,23 +359,32 @@ export default function AddExpense({
                                                 Количество
                                             </label>
                                             <InputField
-                                                type="number"
+                                                type="text"
                                                 value={
                                                     item.quantity === 0
                                                         ? ""
-                                                        : item.quantity
+                                                        : formatAmount(
+                                                              item.quantity
+                                                          )
                                                 }
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    // Remove all non-numeric characters except decimal point
+                                                    const numericValue =
+                                                        e.target.value.replace(
+                                                            /[^\d.]/g,
+                                                            ""
+                                                        );
+                                                    const parsedValue =
+                                                        parseInt(
+                                                            numericValue
+                                                        ) || 0;
                                                     handleItemChange(
                                                         index,
                                                         "quantity",
-                                                        parseInt(
-                                                            e.target.value
-                                                        ) || 0
-                                                    )
-                                                }
+                                                        parsedValue
+                                                    );
+                                                }}
                                                 placeholder="0"
-                                                min="1"
                                                 className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-sm"
                                             />
                                         </div>

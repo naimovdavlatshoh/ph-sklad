@@ -18,7 +18,7 @@ import {
     // BoxCubeIcon,
     // CalenderIcon,
     ChevronDownIcon,
-    GridIcon,
+    // GridIcon,
     HorizontaLDots,
     // ListIcon,
     // PageIcon,
@@ -42,16 +42,16 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-    {
-        icon: <GridIcon />,
-        name: "Dashboard",
-        path: "/",
-        roles: [1, 2, 4], // Admin, Director, Labarant
-    },
+    // {
+    //     icon: <GridIcon />,
+    //     name: "Dashboard",
+    //     path: "/",
+    //     roles: [1, 2, 4], // Admin, Director, Labarant
+    // },
     {
         name: "Пользователи",
         icon: <UserIcon />,
-        path: "/users",
+        path: "/",
         roles: [1], // Faqat Admin
     },
     {

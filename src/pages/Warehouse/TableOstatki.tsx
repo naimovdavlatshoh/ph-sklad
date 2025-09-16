@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
-import { GetDataSimple, PostSimple } from "../../service/data.ts";
+import { BASE_URL, GetDataSimple, PostSimple } from "../../service/data.ts";
 import { toast } from "react-hot-toast";
 import Loader from "../../components/ui/loader/Loader.tsx";
 import Pagination from "../../components/common/Pagination.tsx";
 import Select from "../../components/form/Select.tsx";
+import ExcelDownloadModal from "../../components/modals/ExcelDownloadModal.tsx";
+import Button from "../../components/ui/button/Button.tsx";
 
 interface OstatkiItem {
     material_id: number;
@@ -47,9 +49,69 @@ export default function TableOstatki({
         category_id: "",
         sort_quantity: "DESC",
     });
+    const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const formatNumber = (num: number) => {
         return parseFloat(num.toString()).toString();
+    };
+
+    const handleExcelDownload = async () => {
+        setIsDownloading(true);
+        try {
+            // Get token from localStorage
+            const token = localStorage.getItem("token");
+
+            const response = await fetch(`${BASE_URL}api/excel/warehouse`, {
+                method: "GET",
+                headers: {
+                    Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, application/octet-stream",
+                    Authorization: token ? `Bearer ${token}` : "",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to download Excel file");
+            }
+
+            // Check if response is actually an Excel file
+            const contentType = response.headers.get("content-type");
+            console.log("Response Content-Type:", contentType);
+
+            const blob = await response.blob();
+            console.log("Blob size:", blob.size, "bytes");
+            console.log("Blob type:", blob.type);
+
+            // Create blob with correct MIME type
+            const excelBlob = new Blob([blob], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(excelBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Остатки_${
+                new Date().toISOString().split("T")[0]
+            }.xlsx`;
+            link.style.display = "none";
+
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success("Excel файл успешно скачан");
+            setIsExcelModalOpen(false);
+        } catch (error) {
+            console.error("Error downloading Excel file:", error);
+            toast.error("Ошибка при скачивании Excel файла");
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     const fetchUnits = useCallback(async () => {
@@ -177,9 +239,34 @@ export default function TableOstatki({
         <div className="space-y-4">
             {/* Filters */}
             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                    Фильтры
-                </h4>
+                <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                        Фильтры
+                    </h4>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsExcelModalOpen(true)}
+                        startIcon={
+                            <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                            </svg>
+                        }
+                    >
+                        Скачать Excel
+                    </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -326,6 +413,16 @@ export default function TableOstatki({
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={onPageChange}
+            />
+
+            {/* Excel Download Modal */}
+            <ExcelDownloadModal
+                isOpen={isExcelModalOpen}
+                onClose={() => setIsExcelModalOpen(false)}
+                onDownload={handleExcelDownload}
+                isLoading={isDownloading}
+                title="Скачать Excel - Остатки"
+                message="Вы хотите скачать остатки склада в формате Excel?"
             />
         </div>
     );

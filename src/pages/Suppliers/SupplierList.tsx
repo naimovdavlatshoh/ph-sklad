@@ -2,12 +2,14 @@ import { useEffect, useState, useCallback } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
 import ComponentCard from "../../components/common/ComponentCard.tsx";
 import PageMeta from "../../components/common/PageMeta.tsx";
-import { GetDataSimple, PostSimple } from "../../service/data.ts";
+import { BASE_URL, GetDataSimple, PostSimple } from "../../service/data.ts";
 import Pagination from "../../components/common/Pagination.tsx";
 import { Toaster } from "react-hot-toast";
 import { useSearch } from "../../context/SearchContext";
 import { toast } from "react-hot-toast";
 import { useModal } from "../../hooks/useModal.ts";
+import ExcelDownloadModal from "../../components/modals/ExcelDownloadModal.tsx";
+import Button from "../../components/ui/button/Button.tsx";
 
 import Loader from "../../components/ui/loader/Loader.tsx";
 import TableSupplier from "./TableSupplier.tsx";
@@ -29,6 +31,8 @@ export default function SupplierList() {
     const [status, setStatus] = useState(false);
     const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
+    const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     const fetchSuppliers = useCallback(async () => {
         setLoading(true);
@@ -101,6 +105,64 @@ export default function SupplierList() {
         fetchSuppliers();
     }, [status, fetchSuppliers]);
 
+    const handleExcelDownload = async () => {
+        setIsDownloading(true);
+        try {
+            // Get token from localStorage
+            const token = localStorage.getItem("token");
+
+            const response = await fetch(`${BASE_URL}api/excel/supplier`, {
+                method: "GET",
+                headers: {
+                    Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, application/octet-stream",
+                    Authorization: token ? `Bearer ${token}` : "",
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to download Excel file");
+            }
+
+            // Check if response is actually an Excel file
+            const contentType = response.headers.get("content-type");
+            console.log("Response Content-Type:", contentType);
+
+            const blob = await response.blob();
+            console.log("Blob size:", blob.size, "bytes");
+            console.log("Blob type:", blob.type);
+
+            // Create blob with correct MIME type
+            const excelBlob = new Blob([blob], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(excelBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Поставщики_${
+                new Date().toISOString().split("T")[0]
+            }.xlsx`;
+            link.style.display = "none";
+
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success("Excel файл успешно скачан");
+            setIsExcelModalOpen(false);
+        } catch (error) {
+            console.error("Error downloading Excel file:", error);
+            toast.error("Ошибка при скачивании Excel файла");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     // Initial fetch when component mounts
     useEffect(() => {
         fetchSuppliers();
@@ -140,25 +202,50 @@ export default function SupplierList() {
             <ComponentCard
                 title="Список поставщиков"
                 desc={
-                    <button
-                        onClick={openModal}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                    <div className="flex gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsExcelModalOpen(true)}
+                            startIcon={
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
+                                </svg>
+                            }
                         >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        Добавить поставщика
-                    </button>
+                            Скачать Excel
+                        </Button>
+                        <button
+                            onClick={openModal}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                        >
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                />
+                            </svg>
+                            Добавить поставщика
+                        </button>
+                    </div>
                 }
             >
                 <TableSupplier
@@ -180,6 +267,16 @@ export default function SupplierList() {
                     changeStatus();
                 }}
                 changeStatus={changeStatus}
+            />
+
+            {/* Excel Download Modal */}
+            <ExcelDownloadModal
+                isOpen={isExcelModalOpen}
+                onClose={() => setIsExcelModalOpen(false)}
+                onDownload={handleExcelDownload}
+                isLoading={isDownloading}
+                title="Скачать Excel - Поставщики"
+                message="Вы хотите скачать список поставщиков в формате Excel?"
             />
 
             <Toaster

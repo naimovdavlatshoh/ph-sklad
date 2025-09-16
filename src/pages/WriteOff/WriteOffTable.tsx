@@ -8,6 +8,25 @@ import {
 } from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
 import { TrashBinIcon } from "../../icons";
+import Pagination from "../../components/common/Pagination";
+
+// Comment icon SVG
+const CommentIcon = ({ className }: { className?: string }) => (
+    <svg
+        className={className}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
+    </svg>
+);
 
 interface WriteOffItem {
     id: number;
@@ -151,21 +170,6 @@ export function WriteOffTable({
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                         <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center mr-3">
-                                                <svg
-                                                    className="w-5 h-5 text-blue-600 dark:text-blue-400"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        strokeWidth={2}
-                                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                                                    />
-                                                </svg>
-                                            </div>
                                             <div>
                                                 <div className="text-sm font-medium text-gray-900 dark:text-white">
                                                     {writeOff.material_name}
@@ -183,8 +187,19 @@ export function WriteOffTable({
                                             ] || "Неизвестно"}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="px-5 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate">
-                                        {writeOff.comments || "-"}
+                                    <TableCell className="px-5 py-4 text-sm text-center">
+                                        {writeOff.comments &&
+                                        writeOff.comments.trim() !== "" ? (
+                                            <div className="relative group">
+                                                <CommentIcon className="w-5 h-5 text-green-500 mx-auto cursor-pointer hover:text-green-600 transition-colors" />
+                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap max-w-xs z-10">
+                                                    {writeOff.comments}
+                                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <CommentIcon className="w-5 h-5 text-gray-300 mx-auto" />
+                                        )}
                                     </TableCell>
                                     <TableCell className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
                                         {new Date(
@@ -193,7 +208,6 @@ export function WriteOffTable({
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                         <div className="flex items-center space-x-2">
-                                            
                                             <Button
                                                 onClick={() =>
                                                     onDelete(
@@ -219,31 +233,12 @@ export function WriteOffTable({
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-700 dark:text-gray-300">
-                        Страница {currentPage} из {totalPages}
-                    </div>
-                    <div className="flex space-x-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onPageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            Назад
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onPageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Вперед
-                        </Button>
-                    </div>
-                </div>
-            )}
+
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+            />
         </div>
     );
 }

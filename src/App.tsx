@@ -70,7 +70,7 @@ export default function App() {
                                 </ProtectedRoute>
                             }
                         >
-                            <Route index path="/" element={<Home />} />
+                            <Route index path="/" element={<UserList />} />
 
                             {/* Others Page */}
                             <Route path="/profile" element={<UserProfiles />} />
@@ -88,7 +88,7 @@ export default function App() {
                                 path="/basic-tables"
                                 element={<BasicTables />}
                             />
-                            <Route path="/users" element={<UserList />} />
+                            {/* <Route path="/users" element={<UserList />} /> */}
 
                             <Route
                                 path="/categories"

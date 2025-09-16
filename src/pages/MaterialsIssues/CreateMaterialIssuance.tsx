@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Modal } from "../../components/ui/modal";
 import { PostSimple, GetDataSimple } from "../../service/data";
 import { toast } from "react-hot-toast";
+import { formatAmount } from "../../utils/numberFormat";
 import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
@@ -615,18 +616,32 @@ export default function CreateMaterialIssuance({
                                                     Количество *
                                                 </Label>
                                                 <InputField
-                                                    type="number"
-                                                    value={item.quantity}
-                                                    onChange={(e) =>
+                                                    type="text"
+                                                    value={
+                                                        item.quantity === 0
+                                                            ? ""
+                                                            : formatAmount(
+                                                                  item.quantity
+                                                              )
+                                                    }
+                                                    onChange={(e) => {
+                                                        // Remove all non-numeric characters except decimal point
+                                                        const numericValue =
+                                                            e.target.value.replace(
+                                                                /[^\d.]/g,
+                                                                ""
+                                                            );
+                                                        const parsedValue =
+                                                            parseInt(
+                                                                numericValue
+                                                            ) || 0;
                                                         handleItemChange(
                                                             index,
                                                             "quantity",
-                                                            parseInt(
-                                                                e.target.value
-                                                            )
-                                                        )
-                                                    }
-                                                    min="1"
+                                                            parsedValue
+                                                        );
+                                                    }}
+                                                    placeholder="0"
                                                     required
                                                     className="mt-2"
                                                 />

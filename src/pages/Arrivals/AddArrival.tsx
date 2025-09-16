@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Modal } from "../../components/ui/modal";
 import { PostSimple, GetDataSimple } from "../../service/data";
 import { toast } from "react-hot-toast";
+import { formatAmount } from "../../utils/numberFormat";
 import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
@@ -416,23 +417,32 @@ export default function AddArrival({
                                                 Количество
                                             </label>
                                             <InputField
-                                                type="number"
+                                                type="text"
                                                 value={
                                                     item.amount === 0
                                                         ? ""
-                                                        : item.amount
+                                                        : formatAmount(
+                                                              item.amount
+                                                          )
                                                 }
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    // Remove all non-numeric characters except decimal point
+                                                    const numericValue =
+                                                        e.target.value.replace(
+                                                            /[^\d.]/g,
+                                                            ""
+                                                        );
+                                                    const parsedValue =
+                                                        parseInt(
+                                                            numericValue
+                                                        ) || 0;
                                                     handleItemChange(
                                                         index,
                                                         "amount",
-                                                        parseInt(
-                                                            e.target.value
-                                                        ) || 0
-                                                    )
-                                                }
+                                                        parsedValue
+                                                    );
+                                                }}
                                                 placeholder="0"
-                                                min="1"
                                                 className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-sm"
                                             />
                                         </div>
@@ -442,23 +452,32 @@ export default function AddArrival({
                                                 Цена (сум)
                                             </label>
                                             <InputField
-                                                type="number"
+                                                type="text"
                                                 value={
                                                     item.price === 0
                                                         ? ""
-                                                        : item.price
+                                                        : formatAmount(
+                                                              item.price
+                                                          )
                                                 }
-                                                onChange={(e) =>
+                                                onChange={(e) => {
+                                                    // Remove all non-numeric characters except decimal point
+                                                    const numericValue =
+                                                        e.target.value.replace(
+                                                            /[^\d.]/g,
+                                                            ""
+                                                        );
+                                                    const parsedValue =
+                                                        parseInt(
+                                                            numericValue
+                                                        ) || 0;
                                                     handleItemChange(
                                                         index,
                                                         "price",
-                                                        parseInt(
-                                                            e.target.value
-                                                        ) || 0
-                                                    )
-                                                }
+                                                        parsedValue
+                                                    );
+                                                }}
                                                 placeholder="0"
-                                                min="1"
                                                 className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-sm"
                                             />
                                         </div>

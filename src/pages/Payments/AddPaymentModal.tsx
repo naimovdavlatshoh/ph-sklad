@@ -7,7 +7,7 @@ import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import TextArea from "../../components/form/input/TextArea";
 import Label from "../../components/form/Label";
-import { formatCurrency } from "../../utils/numberFormat";
+import { formatCurrency, formatAmount } from "../../utils/numberFormat";
 import toast from "react-hot-toast";
 
 interface AddPaymentModalProps {
@@ -85,7 +85,7 @@ export function AddPaymentModal({
 
             setArrivals(Array.isArray(arrivalsData) ? arrivalsData : []);
         } catch (error: any) {
-            console.error("Arrivals loading error:", error);
+            console.error("Arrivals loading error:", error.response.data);
 
             // Backend dan kelgan xato xabari
             const errorMessage = "Произошла ошибка при загрузке приходов";
@@ -137,10 +137,10 @@ export function AddPaymentModal({
             onPaymentAdded();
             handleClose();
         } catch (error: any) {
-            console.error("Payment creation error:", error);
+            console.error("Payment creation error:", error.response.data.error);
 
             // Backend dan kelgan xato xabari
-            const errorMessage = "Произошла ошибка при создании платежа";
+            const errorMessage = error.response.data.error;
 
             toast.error(errorMessage);
 
@@ -244,14 +244,28 @@ export function AddPaymentModal({
                             <span className="text-red-500">*</span>
                         </Label>
                         <Input
-                            type="number"
+                            type="text"
                             name="payment_amount"
-                            value={formData.payment_amount}
-                            onChange={handleInputChange}
-                            placeholder="Введите сумму платежа"
+                            value={
+                                formData.payment_amount === "0"
+                                    ? ""
+                                    : formatAmount(formData.payment_amount)
+                            }
+                            onChange={(e) => {
+                                // Remove all non-numeric characters except decimal point
+                                const numericValue = e.target.value.replace(
+                                    /[^\d.]/g,
+                                    ""
+                                );
+                                handleInputChange({
+                                    target: {
+                                        name: "payment_amount",
+                                        value: numericValue,
+                                    },
+                                } as React.ChangeEvent<HTMLInputElement>);
+                            }}
+                            placeholder="0"
                             required
-                            min="0"
-                            step={0.01}
                         />
                     </div>
 

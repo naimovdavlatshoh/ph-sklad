@@ -7,6 +7,7 @@ import Select from "../../components/form/Select";
 import Label from "../../components/form/Label";
 import { PostDataTokenJson } from "../../service/data";
 import toast from "react-hot-toast";
+import { formatAmount } from "../../utils/numberFormat";
 
 interface AddBalanceProps {
     isOpen: boolean;
@@ -116,15 +117,24 @@ export default function AddBalance({
                         </Label>
                         <InputField
                             id="payment_amount"
-                            type="number"
-                            placeholder="Введите сумму"
-                            value={formData.payment_amount}
-                            onChange={(e) =>
+                            type="text"
+                            placeholder="0"
+                            value={
+                                formData.payment_amount === "0"
+                                    ? ""
+                                    : formatAmount(formData.payment_amount)
+                            }
+                            onChange={(e) => {
+                                // Remove all non-numeric characters except decimal point
+                                const numericValue = e.target.value.replace(
+                                    /[^\d.]/g,
+                                    ""
+                                );
                                 setFormData({
                                     ...formData,
-                                    payment_amount: e.target.value,
-                                })
-                            }
+                                    payment_amount: numericValue,
+                                });
+                            }}
                             error={!!errors.payment_amount}
                         />
                         {errors.payment_amount && (

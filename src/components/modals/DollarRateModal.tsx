@@ -6,6 +6,7 @@ import TextArea from "../form/input/TextArea";
 import Label from "../form/Label";
 import { PostDataTokenJson } from "../../service/data";
 import toast from "react-hot-toast";
+import { formatAmount } from "../../utils/numberFormat";
 
 interface DollarRateModalProps {
     isOpen: boolean;
@@ -103,15 +104,24 @@ export default function DollarRateModal({
                         </Label>
                         <InputField
                             id="dollar_rate"
-                            type="number"
-                            placeholder="Введите курс доллара"
-                            value={formData.dollar_rate}
-                            onChange={(e) =>
+                            type="text"
+                            placeholder="0"
+                            value={
+                                formData.dollar_rate === "0"
+                                    ? ""
+                                    : formatAmount(formData.dollar_rate)
+                            }
+                            onChange={(e) => {
+                                // Remove all non-numeric characters except decimal point
+                                const numericValue = e.target.value.replace(
+                                    /[^\d.]/g,
+                                    ""
+                                );
                                 setFormData({
                                     ...formData,
-                                    dollar_rate: e.target.value,
-                                })
-                            }
+                                    dollar_rate: numericValue,
+                                });
+                            }}
                             error={!!errors.dollar_rate}
                         />
                         {errors.dollar_rate && (

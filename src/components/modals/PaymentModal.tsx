@@ -7,6 +7,7 @@ import Label from "../form/Label";
 import Select from "../form/Select";
 import { PostDataTokenJson } from "../../service/data";
 import toast from "react-hot-toast";
+// import { formatAmount } from "../../utils/numberFormat";
 
 interface PaymentHistory {
     payment_id: string;
@@ -119,8 +120,8 @@ export default function PaymentModal({
             setSelectedPaymentMethod("1");
             setSelectedCashType("1");
         } catch (error: any) {
-            console.error("Payment creation error:", error);
-            setError("Что-то пошло не так, попробуйте снова");
+            console.error("Payment creation error:", error.response.data.error);
+            setError(error.response.data.error);
         } finally {
             setIsSubmitting(false);
         }
@@ -313,17 +314,29 @@ export default function PaymentModal({
                             </Label>
                             <InputField
                                 id="payment_amount"
-                                type="number"
-                                value={formData.payment_amount}
+                                type="text"
+                                value={
+                                    formData.payment_amount === 0
+                                        ? ""
+                                        : formatAmount(
+                                              formData.payment_amount.toString()
+                                          )
+                                }
                                 onChange={(e) => {
                                     setError(null);
+                                    // Remove all non-numeric characters except decimal point
+                                    const numericValue = e.target.value.replace(
+                                        /[^\d.]/g,
+                                        ""
+                                    );
+                                    const parsedValue =
+                                        parseFloat(numericValue) || 0;
                                     setFormData({
                                         ...formData,
-                                        payment_amount:
-                                            parseFloat(e.target.value) || 0,
+                                        payment_amount: parsedValue,
                                     });
                                 }}
-                                placeholder="Введите сумму платежа"
+                                placeholder="0"
                                 required
                             />
                         </div>

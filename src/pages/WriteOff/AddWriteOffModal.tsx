@@ -6,6 +6,7 @@ import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
 import Label from "../../components/form/Label";
+import { formatAmount } from "../../utils/numberFormat";
 
 interface Material {
     material_id: string | number;
@@ -227,12 +228,28 @@ export default function AddWriteOffModal({
                             <div>
                                 <Label htmlFor="amount">Количество *</Label>
                                 <InputField
-                                    type="number"
+                                    type="text"
                                     name="amount"
-                                    value={formData.amount}
-                                    onChange={handleInputChange}
-                                    placeholder="Введите количество"
-                                    min="1"
+                                    value={
+                                        formData.amount === "0"
+                                            ? ""
+                                            : formatAmount(formData.amount)
+                                    }
+                                    onChange={(e) => {
+                                        // Remove all non-numeric characters except decimal point
+                                        const numericValue =
+                                            e.target.value.replace(
+                                                /[^\d.]/g,
+                                                ""
+                                            );
+                                        handleInputChange({
+                                            target: {
+                                                name: "amount",
+                                                value: numericValue,
+                                            },
+                                        } as React.ChangeEvent<HTMLInputElement>);
+                                    }}
+                                    placeholder="0"
                                     required
                                     className=""
                                 />

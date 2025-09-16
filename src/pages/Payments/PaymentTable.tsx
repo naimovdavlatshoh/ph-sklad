@@ -8,6 +8,26 @@ import {
 } from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
 import { Payment } from "./PaymentList";
+import Pagination from "../../components/common/Pagination";
+import { TrashBinIcon } from "../../icons";
+
+// Comment icon SVG
+const CommentIcon = ({ className }: { className?: string }) => (
+    <svg
+        className={className}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg"
+    >
+        <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+        />
+    </svg>
+);
 
 interface PaymentTableProps {
     payments: Payment[];
@@ -250,18 +270,19 @@ export function PaymentTable({
                                             {payment.cash_type_text}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="px-5 py-4">
-                                        <div className="max-w-xs">
-                                            {payment.comments ? (
-                                                <span className="text-sm text-gray-600 dark:text-gray-300">
+                                    <TableCell className="px-5 py-4 text-center">
+                                        {payment.comments &&
+                                        payment.comments.trim() !== "" ? (
+                                            <div className="relative group">
+                                                <CommentIcon className="w-5 h-5 text-green-500 mx-auto cursor-pointer hover:text-green-600 transition-colors" />
+                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap max-w-xs z-10">
                                                     {payment.comments}
-                                                </span>
-                                            ) : (
-                                                <span className="text-sm text-gray-400 dark:text-gray-500">
-                                                    Нет комментария
-                                                </span>
-                                            )}
-                                        </div>
+                                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <CommentIcon className="w-5 h-5 text-gray-300 mx-auto" />
+                                        )}
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                         <div className="text-sm text-gray-900 dark:text-white">
@@ -275,23 +296,23 @@ export function PaymentTable({
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                         <Button
-                                            variant="outline"
-                                            size="sm"
                                             onClick={() =>
                                                 handleDelete(
                                                     payment.payment_id,
                                                     payment.supplier_name
                                                 )
                                             }
+                                            size="xs"
+                                            variant="danger"
                                             disabled={
                                                 deletingId ===
                                                 payment.payment_id
                                             }
-                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300"
+                                            startIcon={
+                                                <TrashBinIcon className="size-4" />
+                                            }
                                         >
-                                            {deletingId === payment.payment_id
-                                                ? "Удаление..."
-                                                : "Удалить"}
+                                            {""}
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -303,27 +324,11 @@ export function PaymentTable({
 
             {/* Pagination */}
             {!isSearching && totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onPageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                    >
-                        Назад
-                    </Button>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                        Страница {currentPage} из {totalPages}
-                    </span>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onPageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                    >
-                        Вперед
-                    </Button>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={onPageChange}
+                />
             )}
         </div>
     );

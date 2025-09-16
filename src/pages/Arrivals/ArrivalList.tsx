@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
 import ComponentCard from "../../components/common/ComponentCard.tsx";
 import PageMeta from "../../components/common/PageMeta.tsx";
-import { GetDataSimple, PostSimple } from "../../service/data.ts";
+import { BASE_URL, GetDataSimple, PostSimple } from "../../service/data.ts";
 import Pagination from "../../components/common/Pagination.tsx";
 import { Toaster } from "react-hot-toast";
 import { useSearch } from "../../context/SearchContext";
@@ -14,6 +14,8 @@ import AddArrival from "./AddArrival.tsx";
 import TabNavigation from "../../components/common/TabNavigation.tsx";
 import TableOstatki from "../Warehouse/TableOstatki.tsx";
 import TableExpenses from "../Expenses/TableExpenses.tsx";
+import ArrivalExcelDownloadModal from "../../components/modals/ArrivalExcelDownloadModal.tsx";
+import Button from "../../components/ui/button/Button.tsx";
 
 interface PaymentHistory {
     payment_id: string;
@@ -55,6 +57,16 @@ export default function ArrivalList() {
     const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("prixod");
+    const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [suppliers, setSuppliers] = useState<any[]>([]);
+    const [isSearchingSuppliers, setIsSearchingSuppliers] = useState(false);
+    const [excelFilters, setExcelFilters] = useState({
+        start_date: "",
+        end_date: "",
+        supplier_id: "",
+    });
+    const [totalCount, setTotalCount] = useState(0);
 
     const tabs = [
         {
@@ -142,10 +154,224 @@ export default function ArrivalList() {
         }
     }, [status, fetchArrivals, activeTab]);
 
+    const fetchSuppliers = useCallback(async () => {
+        try {
+            const response: any = await GetDataSimple(
+                "api/supplier/list?page=1&limit=100"
+            );
+            const suppliersData =
+                response?.result || response?.data?.result || [];
+            setSuppliers(suppliersData);
+        } catch (error) {
+            console.error("Error fetching suppliers:", error);
+        }
+    }, []);
+
+    // Search suppliers function
+    const handleSupplierSearch = async (query: string) => {
+        if (!query.trim()) {
+            fetchSuppliers();
+            return;
+        }
+
+        // Only search if query has at least 3 characters
+        if (query.trim().length < 3) {
+            return;
+        }
+
+        try {
+            setIsSearchingSuppliers(true);
+            const response = await fetch(
+                `${BASE_URL}api/supplier/search?keyword=${encodeURIComponent(
+                    query
+                )}`,
+                {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: localStorage.getItem("token")
+                            ? `Bearer ${localStorage.getItem("token")}`
+                            : "",
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setSuppliers(data.result || data.data || []);
+            }
+        } catch (error) {
+            console.error("Error searching suppliers:", error);
+        } finally {
+            setIsSearchingSuppliers(false);
+        }
+    };
+
+    const formatDateToDDMMYYYY = (dateString: string) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    };
+
+    const handleExcelDownload = async () => {
+        // Check that both dates are present before downloading
+        if (
+            !excelFilters.start_date ||
+            !excelFilters.end_date ||
+            excelFilters.start_date.trim() === "" ||
+            excelFilters.end_date.trim() === ""
+        ) {
+            toast.error("Пожалуйста, выберите дату начала и дату окончания");
+            return;
+        }
+
+        setIsDownloading(true);
+        try {
+            const token = localStorage.getItem("token");
+
+            const params = new URLSearchParams({
+                start_date: formatDateToDDMMYYYY(excelFilters.start_date),
+                end_date: formatDateToDDMMYYYY(excelFilters.end_date),
+            });
+
+            if (excelFilters.supplier_id) {
+                params.append("supplier_id", excelFilters.supplier_id);
+            }
+
+            const response = await fetch(
+                `${BASE_URL}api/excel/arrival?${params.toString()}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, application/octet-stream",
+                        Authorization: token ? `Bearer ${token}` : "",
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to download Excel file");
+            }
+
+            const blob = await response.blob();
+            const excelBlob = new Blob([blob], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(excelBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Приходы_${formatDateToDDMMYYYY(
+                excelFilters.start_date
+            )}_${formatDateToDDMMYYYY(excelFilters.end_date)}.xlsx`;
+            link.style.display = "none";
+
+            document.body.appendChild(link);
+            link.click();
+
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success("Excel файл успешно скачан");
+            setIsExcelModalOpen(false);
+        } catch (error) {
+            console.error("Error downloading Excel file:", error);
+            toast.error("Ошибка при скачивании Excel файла");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleFiltersChange = (newFilters: any) => {
+        console.log("Filters changed:", newFilters);
+        setExcelFilters(newFilters);
+        // Only call API if both dates are present
+        if (
+            newFilters.start_date &&
+            newFilters.end_date &&
+            newFilters.start_date.trim() !== "" &&
+            newFilters.end_date.trim() !== ""
+        ) {
+            console.log(
+                "Both dates present, calling getTotalCount with new filters"
+            );
+            // Call getTotalCount with the new filters directly
+            getTotalCountWithFilters(newFilters);
+        } else {
+            console.log("Missing dates, not calling API");
+            setTotalCount(0);
+        }
+    };
+
+    const getTotalCountWithFilters = async (filters: any) => {
+        // Double check that both dates are present
+        if (
+            !filters.start_date ||
+            !filters.end_date ||
+            filters.start_date.trim() === "" ||
+            filters.end_date.trim() === ""
+        ) {
+            console.log(
+                "Missing dates in getTotalCountWithFilters, skipping API call"
+            );
+            setTotalCount(0);
+            return;
+        }
+
+        try {
+            const formattedStartDate = formatDateToDDMMYYYY(filters.start_date);
+            const formattedEndDate = formatDateToDDMMYYYY(filters.end_date);
+
+            console.log("Getting total count with dates:", {
+                start_date: filters.start_date,
+                end_date: filters.end_date,
+                formattedStartDate,
+                formattedEndDate,
+            });
+
+            const params = new URLSearchParams({
+                start_date: formattedStartDate,
+                end_date: formattedEndDate,
+                count: "1",
+            });
+
+            if (filters.supplier_id) {
+                params.append("supplier_id", filters.supplier_id);
+            }
+
+            const response = await fetch(
+                `${BASE_URL}api/excel/arrival?${params.toString()}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: localStorage.getItem("token")
+                            ? `Bearer ${localStorage.getItem("token")}`
+                            : "",
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setTotalCount(data.total_count || 0);
+            }
+        } catch (error) {
+            console.error("Error getting total count:", error);
+            setTotalCount(0);
+        }
+    };
+
     // Initial fetch when component mounts
     useEffect(() => {
         fetchArrivals();
-    }, [fetchArrivals]);
+        fetchSuppliers();
+    }, [fetchArrivals, fetchSuppliers]);
 
     // Handle search and page changes
     useEffect(() => {
@@ -212,7 +438,6 @@ export default function ArrivalList() {
                         searchQuery={searchQuery}
                         currentPage={page}
                         onPageChange={setPage}
-
                     />
                 );
             default:
@@ -236,25 +461,50 @@ export default function ArrivalList() {
     const getAddButton = () => {
         if (activeTab === "prixod") {
             return (
-                <button
-                    onClick={openModal}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                >
-                    <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                <div className="flex gap-3">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsExcelModalOpen(true)}
+                        startIcon={
+                            <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                            </svg>
+                        }
                     >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                    </svg>
-                    Добавить приход
-                </button>
+                        Скачать Excel
+                    </Button>
+                    <button
+                        onClick={openModal}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                        </svg>
+                        Добавить приход
+                    </button>
+                </div>
             );
         }
         return null;
@@ -287,6 +537,19 @@ export default function ArrivalList() {
                     changeStatus={changeStatus}
                 />
             )}
+
+            {/* Arrival Excel Download Modal */}
+            <ArrivalExcelDownloadModal
+                isOpen={isExcelModalOpen}
+                onClose={() => setIsExcelModalOpen(false)}
+                onDownload={handleExcelDownload}
+                isLoading={isDownloading}
+                suppliers={suppliers}
+                onFiltersChange={handleFiltersChange}
+                totalCount={totalCount}
+                onSupplierSearch={handleSupplierSearch}
+                isSearchingSuppliers={isSearchingSuppliers}
+            />
 
             <Toaster
                 position="bottom-right"
