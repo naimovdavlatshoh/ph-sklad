@@ -77,7 +77,7 @@ export default function PaymentModal({
     };
 
     const formatAmount = (amount: string) => {
-        return parseInt(amount).toLocaleString();
+        return parseInt(amount).toLocaleString().replace(/,/g, " ");
     };
 
     const remainingAmount = parseInt(totalPrice) - parseInt(totalPayments);

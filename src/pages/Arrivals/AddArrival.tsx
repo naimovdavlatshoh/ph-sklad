@@ -505,9 +505,12 @@ export default function AddArrival({
                                                     Общая сумма
                                                 </label>
                                                 <div className="px-3 h-[44px] flex items-center bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-semibold text-gray-900 dark:text-white">
-                                                    {(
-                                                        item.amount * item.price
-                                                    ).toLocaleString()}{" "}
+                                                    {(item.amount * item.price)
+                                                        .toLocaleString()
+                                                        .replace(
+                                                            /,/g,
+                                                            " "
+                                                        )}{" "}
                                                     сум
                                                 </div>
                                             </div>
@@ -551,12 +554,18 @@ export default function AddArrival({
                                         </h4>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
                                             {items.length} материал(ов) •{" "}
-                                            {totalSum.toLocaleString()} сум
+                                            {totalSum
+                                                .toLocaleString()
+                                                .replace(/,/g, " ")}{" "}
+                                            сум
                                         </p>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                            {totalSum.toLocaleString()} сум
+                                            {totalSum
+                                                .toLocaleString()
+                                                .replace(/,/g, " ")}{" "}
+                                            сум
                                         </div>
                                     </div>
                                 </div>

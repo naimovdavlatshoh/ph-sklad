@@ -324,7 +324,12 @@ export default function TableArrival({
                                                                 {parseInt(
                                                                     arrival.total_payments ||
                                                                         "0"
-                                                                ).toLocaleString()}
+                                                                )
+                                                                    .toLocaleString()
+                                                                    .replace(
+                                                                        /,/g,
+                                                                        " "
+                                                                    )}
                                                             </span>
                                                             <span className="text-gray-500 dark:text-gray-400">
                                                                 {" "}
@@ -333,7 +338,12 @@ export default function TableArrival({
                                                             <span className="text-red-600 dark:text-red-400">
                                                                 {parseInt(
                                                                     arrival.total_price
-                                                                ).toLocaleString()}
+                                                                )
+                                                                    .toLocaleString()
+                                                                    .replace(
+                                                                        /,/g,
+                                                                        " "
+                                                                    )}
                                                             </span>
                                                             <span className="text-gray-500 dark:text-gray-400">
                                                                 {" "}
@@ -351,7 +361,12 @@ export default function TableArrival({
                                                         <span className="text-green-600 dark:text-green-400">
                                                             {parseInt(
                                                                 arrival.total_price
-                                                            ).toLocaleString()}{" "}
+                                                            )
+                                                                .toLocaleString()
+                                                                .replace(
+                                                                    /,/g,
+                                                                    " "
+                                                                )}{" "}
                                                             сум
                                                         </span>
                                                     ) : (
@@ -359,7 +374,12 @@ export default function TableArrival({
                                                         <span className="text-red-600 dark:text-red-400">
                                                             {parseInt(
                                                                 arrival.total_price
-                                                            ).toLocaleString()}{" "}
+                                                            )
+                                                                .toLocaleString()
+                                                                .replace(
+                                                                    /,/g,
+                                                                    " "
+                                                                )}{" "}
                                                             сум
                                                         </span>
                                                     )}
@@ -698,14 +718,17 @@ export default function TableArrival({
                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                        {parseFloat(
-                                                            item.amount
-                                                        ).toLocaleString()}
+                                                        {parseFloat(item.amount)
+                                                            .toLocaleString()
+                                                            .replace(/,/g, " ")}
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                        {parseInt(
-                                                            item.price
-                                                        ).toLocaleString()}{" "}
+                                                        {parseInt(item.price)
+                                                            .toLocaleString()
+                                                            .replace(
+                                                                /,/g,
+                                                                " "
+                                                            )}{" "}
                                                         сум
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
@@ -714,7 +737,12 @@ export default function TableArrival({
                                                                 item.amount
                                                             ) *
                                                             parseInt(item.price)
-                                                        ).toLocaleString()}{" "}
+                                                        )
+                                                            .toLocaleString()
+                                                            .replace(
+                                                                /,/g,
+                                                                " "
+                                                            )}{" "}
                                                         сум
                                                     </td>
                                                 </tr>
@@ -749,7 +777,8 @@ export default function TableArrival({
                                                             ),
                                                     0
                                                 )
-                                                .toLocaleString()}{" "}
+                                                .toLocaleString()
+                                                .replace(/,/g, " ")}{" "}
                                             сум
                                         </span>
                                     </div>
@@ -802,7 +831,12 @@ export default function TableArrival({
                                                     <div className="font-medium text-green-600 dark:text-green-400">
                                                         {parseInt(
                                                             payment.payment_amount
-                                                        ).toLocaleString()}{" "}
+                                                        )
+                                                            .toLocaleString()
+                                                            .replace(
+                                                                /,/g,
+                                                                " "
+                                                            )}{" "}
                                                         {payment.cash_type_text}
                                                     </div>
                                                 </td>

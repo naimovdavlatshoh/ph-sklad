@@ -235,7 +235,9 @@ const AppHeader: React.FC = () => {
                                     $
                                 </span>
                                 <span className="text-blue-700 dark:text-blue-300 font-medium text-sm">
-                                    {dollarRate.toLocaleString("ru-RU")}
+                                    {dollarRate
+                                        .toLocaleString("ru-RU")
+                                        .replace(/,/g, " ")}
                                 </span>
                             </div>
                             <button

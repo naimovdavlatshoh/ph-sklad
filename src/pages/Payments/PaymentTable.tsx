@@ -76,7 +76,9 @@ export function PaymentTable({
 
     const formatAmount = (amount: string, cashTypeText: string) => {
         const currency = cashTypeText === "Доллар" ? "$" : "сум";
-        return `${parseFloat(amount).toLocaleString()} ${currency}`;
+        return `${parseFloat(amount)
+            .toLocaleString()
+            .replace(/,/g, " ")} ${currency}`;
     };
 
     const handleDelete = async (paymentId: string, supplierName: string) => {
@@ -233,14 +235,18 @@ export function PaymentTable({
                                                 Платеж:{" "}
                                                 {parseFloat(
                                                     payment.payment_dollar_rate_that_time
-                                                ).toLocaleString()}{" "}
+                                                )
+                                                    .toLocaleString()
+                                                    .replace(/,/g, " ")}{" "}
                                                 сум
                                             </div>
                                             <div>
                                                 Приход:{" "}
                                                 {parseFloat(
                                                     payment.arrival_dollar_rate_that_time
-                                                ).toLocaleString()}{" "}
+                                                )
+                                                    .toLocaleString()
+                                                    .replace(/,/g, " ")}{" "}
                                                 сум
                                             </div>
                                         </div>

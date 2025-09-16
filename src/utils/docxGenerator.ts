@@ -48,11 +48,15 @@ export const generateContractDocx = async (
             contract_type: contractData.contract_type,
             contract_tarif: contractData.contract_tarif,
             contract_plan_months: contractData.contract_plan_months,
-            contract_price: contractData.contract_price.toLocaleString("uz-UZ"),
+            contract_price: contractData.contract_price
+                .toLocaleString("uz-UZ")
+                .replace(/,/g, " "),
             contract_date: new Date(
                 contractData.contract_date
             ).toLocaleDateString("uz-UZ"),
-            total_amount: contractData.contract_price.toLocaleString("uz-UZ"),
+            total_amount: contractData.contract_price
+                .toLocaleString("uz-UZ")
+                .replace(/,/g, " "),
 
             // To'lov rejasi
             payment_plans: contractData.plan.map((plan, index) => ({
@@ -60,7 +64,9 @@ export const generateContractDocx = async (
                 date: new Date(plan.date_of_payment).toLocaleDateString(
                     "uz-UZ"
                 ),
-                amount: plan.monthly_fee.toLocaleString("uz-UZ"),
+                amount: plan.monthly_fee
+                    .toLocaleString("uz-UZ")
+                    .replace(/,/g, " "),
             })),
 
             // Laboratoriya testlari

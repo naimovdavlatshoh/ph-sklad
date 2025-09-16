@@ -27,7 +27,7 @@ const generateDocument = async (contractData: any) => {
 
     // Helper functions
     const formatCurrency = (amount: number) => {
-        return amount.toLocaleString() + " сум";
+        return amount.toLocaleString().replace(/,/g, " ") + " сум";
     };
 
     const formatDate = (dateString: string) => {

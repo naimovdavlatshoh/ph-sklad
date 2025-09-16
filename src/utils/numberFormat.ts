@@ -18,7 +18,7 @@ export const formatNumber = (
 
     if (isNaN(numAmount)) return "0";
 
-    const formatted = numAmount.toLocaleString("ru-RU");
+    const formatted = numAmount.toLocaleString("ru-RU").replace(/,/g, " ");
 
     return currency ? `${formatted} ${currency}` : formatted;
 };
