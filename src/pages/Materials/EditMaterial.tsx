@@ -11,7 +11,7 @@ interface Material {
     material_id: number;
     category_id: number;
     material_name: string;
-    return_type: number;
+    return_type: string;
     unit_id: number;
     created_at: string;
     category_name?: string;

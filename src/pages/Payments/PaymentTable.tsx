@@ -10,6 +10,7 @@ import Button from "../../components/ui/button/Button";
 import { Payment } from "./PaymentList";
 import Pagination from "../../components/common/Pagination";
 import { TrashBinIcon } from "../../icons";
+import { formatDateTime } from "../../utils/numberFormat";
 
 // Comment icon SVG
 const CommentIcon = ({ className }: { className?: string }) => (
@@ -71,15 +72,7 @@ export function PaymentTable({
             : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("ru-RU", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
+    // Removed formatDate function - using formatDateTime from utils
 
     const formatAmount = (amount: string, cashTypeText: string) => {
         const currency = cashTypeText === "Доллар" ? "$" : "сум";
@@ -291,7 +284,7 @@ export function PaymentTable({
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                         <span className="text-sm text-gray-600 dark:text-gray-300">
-                                            {formatDate(payment.created_at)}
+                                            {formatDateTime(payment.created_at)}
                                         </span>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">

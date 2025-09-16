@@ -7,6 +7,7 @@ import Button from "../../components/ui/button/Button.tsx";
 import { TrashBinIcon } from "../../icons/index.ts";
 import { Modal } from "../../components/ui/modal/index.tsx";
 import AddExpense from "./AddExpense.tsx";
+import { formatDateTime } from "../../utils/numberFormat";
 
 // Comment icon SVG
 const CommentIcon = ({ className }: { className?: string }) => (
@@ -143,20 +144,7 @@ export default function TableExpenses({
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("ru-RU", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        });
-    };
-
-    const formatTime = (dateString: string) => {
-        return new Date(dateString).toLocaleTimeString("ru-RU", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
+    // Removed formatDate and formatTime functions - using formatDateTime from utils
 
     useEffect(() => {
         if (searchQuery.trim() && searchQuery.trim().length >= 3) {
@@ -285,12 +273,7 @@ export default function TableExpenses({
                                                 <td className="px-4 py-2">
                                                     <div>
                                                         <div className="font-medium">
-                                                            {formatDate(
-                                                                expense.created_at
-                                                            )}
-                                                        </div>
-                                                        <div className="text-xs text-gray-500">
-                                                            {formatTime(
+                                                            {formatDateTime(
                                                                 expense.created_at
                                                             )}
                                                         </div>

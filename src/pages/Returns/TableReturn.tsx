@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { DeleteData } from "../../service/data.ts";
 import { Modal } from "../../components/ui/modal/index.tsx";
 import { TrashBinIcon } from "../../icons/index.ts";
+import { formatDateTime } from "../../utils/numberFormat";
 
 interface ReturnItem {
     return_id: string;
@@ -85,15 +86,7 @@ export default function TableReturn({
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("ru-RU", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
+    // Removed formatDate function - using formatDateTime from utils
 
     return (
         <>
@@ -193,7 +186,9 @@ export default function TableReturn({
                                             {returnItem.foreman_name}
                                         </td>
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            {formatDate(returnItem.return_date)}
+                                            {formatDateTime(
+                                                returnItem.return_date
+                                            )}
                                         </td>
                                         <td className="px-5 py-4 text-sm">
                                             <div className="flex items-center space-x-2">
@@ -408,7 +403,7 @@ export default function TableReturn({
                                         Ожидаемая дата возврата
                                     </label>
                                     <p className="text-sm text-gray-900 dark:text-white">
-                                        {formatDate(
+                                        {formatDateTime(
                                             selectedReturn.expected_return_date
                                         )}
                                     </p>
@@ -418,7 +413,9 @@ export default function TableReturn({
                                         Фактическая дата возврата
                                     </label>
                                     <p className="text-sm text-gray-900 dark:text-white">
-                                        {formatDate(selectedReturn.return_date)}
+                                        {formatDateTime(
+                                            selectedReturn.return_date
+                                        )}
                                     </p>
                                 </div>
                             </div>

@@ -38,6 +38,7 @@ export default function AddArrival({
     const [formData, setFormData] = useState({
         supplier_id: "",
         comments: "",
+        invoice_number: "",
     });
     const [items, setItems] = useState<ArrivalItem[]>([
         { material_id: 0, amount: 0, price: 0 },
@@ -236,6 +237,7 @@ export default function AddArrival({
             const requestData = {
                 supplier_id: parseInt(formData.supplier_id),
                 comments: formData.comments,
+                invoice_number: formData.invoice_number,
                 items: validItems.map((item) => ({
                     material_id: item.material_id,
                     amount: item.amount,
@@ -278,6 +280,7 @@ export default function AddArrival({
         setFormData({
             supplier_id: "",
             comments: "",
+            invoice_number: "",
         });
         setItems([{ material_id: 0, amount: 0, price: 0 }]);
     };
@@ -304,7 +307,7 @@ export default function AddArrival({
                 </h3>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-3">
                             <Label htmlFor="supplier-select">
                                 <span className="text-red-500 mr-1">*</span>
@@ -325,6 +328,20 @@ export default function AddArrival({
                                 searchable={true}
                                 onSearch={handleSupplierSearch}
                                 searching={searchingSuppliers}
+                            />
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
+                                Инвойс номер
+                            </label>
+                            <InputField
+                                type="text"
+                                name="invoice_number"
+                                value={formData.invoice_number}
+                                onChange={handleInputChange}
+                                placeholder="Введите инвойс номер"
+                                className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
                             />
                         </div>
 

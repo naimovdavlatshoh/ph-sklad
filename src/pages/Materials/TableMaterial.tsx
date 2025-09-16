@@ -3,14 +3,14 @@ import Button from "../../components/ui/button/Button.tsx";
 import { toast } from "react-hot-toast";
 import { DeleteData } from "../../service/data.ts";
 import { Modal } from "../../components/ui/modal/index.tsx";
-import {  PencilIcon } from "../../icons/index.ts";
+import { PencilIcon } from "../../icons/index.ts";
 import EditMaterial from "./EditMaterial.tsx";
 
 interface Material {
     material_id: number;
     category_id: number;
     material_name: string;
-    return_type: number;
+    return_type: string;
     unit_id: number;
     created_at: string;
     category_name?: string;
@@ -56,8 +56,8 @@ export default function TableMaterial({
         setEditModalOpen(true);
     };
 
-    const getReturnTypeText = (returnType: number) => {
-        return returnType === 1 ? "С возвратом" : "Без возврата";
+    const getReturnTypeText = (returnType: string) => {
+        return returnType === "1" ? "С возвратом" : "Без возврата";
     };
 
     const getReturnTypeColor = (returnType: string) => {

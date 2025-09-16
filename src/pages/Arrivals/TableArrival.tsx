@@ -5,6 +5,7 @@ import { DeleteData } from "../../service/data.ts";
 import { Modal } from "../../components/ui/modal/index.tsx";
 import { TrashBinIcon } from "../../icons/index.ts";
 import PaymentModal from "../../components/modals/PaymentModal";
+import { formatDateTime } from "../../utils/numberFormat";
 
 // Comment icon SVG
 const CommentIcon = ({ className }: { className?: string }) => (
@@ -201,20 +202,7 @@ export default function TableArrival({
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("ru-RU", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        });
-    };
-
-    const formatTime = (dateString: string) => {
-        return new Date(dateString).toLocaleTimeString("ru-RU", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
+    // Removed formatDate and formatTime functions - using formatDateTime from utils
 
     // Generate random color for supplier badge
     const getSupplierBadgeColor = (supplierName: string) => {
@@ -463,12 +451,7 @@ export default function TableArrival({
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
                                             <div>
                                                 <div className="font-medium">
-                                                    {formatDate(
-                                                        arrival.created_at
-                                                    )}
-                                                </div>
-                                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    {formatTime(
+                                                    {formatDateTime(
                                                         arrival.created_at
                                                     )}
                                                 </div>
@@ -833,12 +816,7 @@ export default function TableArrival({
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                     <div className="text-sm">
-                                                        {formatDate(
-                                                            payment.created_at
-                                                        )}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                                                        {formatTime(
+                                                        {formatDateTime(
                                                             payment.created_at
                                                         )}
                                                     </div>

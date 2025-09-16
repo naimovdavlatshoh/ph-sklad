@@ -9,6 +9,7 @@ import {
 import Button from "../../components/ui/button/Button";
 import { TrashBinIcon } from "../../icons";
 import Pagination from "../../components/common/Pagination";
+import { formatDateTime } from "../../utils/numberFormat";
 
 // Comment icon SVG
 const CommentIcon = ({ className }: { className?: string }) => (
@@ -202,9 +203,7 @@ export function WriteOffTable({
                                         )}
                                     </TableCell>
                                     <TableCell className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
-                                        {new Date(
-                                            writeOff.created_at
-                                        ).toLocaleDateString()}
+                                        {formatDateTime(writeOff.created_at)}
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                         <div className="flex items-center space-x-2">

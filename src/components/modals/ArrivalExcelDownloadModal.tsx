@@ -96,6 +96,7 @@ export default function ArrivalExcelDownloadModal({
                             label="Дата начала"
                             placeholder="Выберите дату начала"
                             defaultDate={undefined}
+                            maxDate={new Date()}
                             onChange={(selectedDates) => {
                                 if (selectedDates.length > 0) {
                                     const date = selectedDates[0];
@@ -128,6 +129,7 @@ export default function ArrivalExcelDownloadModal({
                             label="Дата окончания"
                             placeholder="Выберите дату окончания"
                             defaultDate={undefined}
+                            maxDate={new Date()}
                             onChange={(selectedDates) => {
                                 if (selectedDates.length > 0) {
                                     const date = selectedDates[0];

@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { DeleteData } from "../../service/data.ts";
 import { Modal } from "../../components/ui/modal/index.tsx";
 import { TrashBinIcon } from "../../icons/index.ts";
+import { formatDateTime } from "../../utils/numberFormat";
 
 // Comment icon SVG
 const CommentIcon = ({ className }: { className?: string }) => (
@@ -102,15 +103,7 @@ export default function TableBalance({
         }).format(amount);
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("ru-RU", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    };
+    // Removed formatDate function - using formatDateTime from utils
 
     return (
         <>
@@ -210,7 +203,7 @@ export default function TableBalance({
                                             )}
                                         </td>
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            {formatDate(balance.created_at)}
+                                            {formatDateTime(balance.created_at)}
                                         </td>
                                         <td className="px-5 py-4 text-sm">
                                             <div className="flex items-center space-x-2">

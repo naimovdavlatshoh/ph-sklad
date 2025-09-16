@@ -11,6 +11,7 @@ import {
 import ReturnModal from "../../components/modals/ReturnModal";
 import { PostDataTokenJson } from "../../service/data";
 import toast from "react-hot-toast";
+import { formatDateTime } from "../../utils/numberFormat";
 
 // Comment icon SVG
 const CommentIcon = ({ className }: { className?: string }) => (
@@ -97,9 +98,7 @@ export default function TableMaterialsIssues({
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString("ru-RU");
-    };
+    // Removed formatDate function - using formatDateTime from utils
 
     const isOverdue = (expectedDate: string) => {
         return new Date(expectedDate) < new Date();
@@ -308,7 +307,7 @@ export default function TableMaterialsIssues({
                                                             : ""
                                                     }`}
                                                 >
-                                                    {formatDate(
+                                                    {formatDateTime(
                                                         issue.expected_return_date
                                                     )}
                                                     {isOverdue(
@@ -377,7 +376,7 @@ export default function TableMaterialsIssues({
                                         </>
                                     )}
                                     <TableCell className="px-5 py-4">
-                                        {issue.created_at}
+                                        {formatDateTime(issue.created_at)}
                                     </TableCell>
                                 </TableRow>
                             ))}
