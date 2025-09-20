@@ -14,6 +14,8 @@ import AddKitchenModal from "./AddKitchenModal";
 import TabNavigation from "../../components/common/TabNavigation.tsx";
 import TableOstatki from "../Warehouse/TableOstatki.tsx";
 import TableExpenses from "../Expenses/TableExpenses.tsx";
+import KitchenExcelDownloadModal from "../../components/modals/KitchenExcelDownloadModal.tsx";
+import Button from "../../components/ui/button/Button.tsx";
 
 interface Kitchen {
     kitchen_id: string;
@@ -47,6 +49,22 @@ export default function KitchenList() {
     const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("kuxnya");
+
+    // Excel download states
+    const {
+        isOpen: isExcelModalOpen,
+        openModal: openExcelModal,
+        closeModal: closeExcelModal,
+    } = useModal();
+    const [suppliers, setSuppliers] = useState<any[]>([]);
+    const [excelFilters, setExcelFilters] = useState({
+        start_date: "",
+        end_date: "",
+        supplier_id: "",
+    });
+    const [excelTotalCount, setExcelTotalCount] = useState(0);
+    const [isExcelLoading, setIsExcelLoading] = useState(false);
+    const [isSearchingSuppliers, setIsSearchingSuppliers] = useState(false);
 
     const tabs = [
         {
@@ -135,12 +153,159 @@ export default function KitchenList() {
         }
     }, [status, fetchKitchens, activeTab]);
 
+    // Excel download functions
+    const fetchSuppliers = useCallback(async () => {
+        try {
+            const response = await GetDataSimple(
+                "api/supplier/list?page=1&limit=100"
+            );
+            const suppliersData =
+                response?.result || response?.data?.result || [];
+            setSuppliers(suppliersData);
+        } catch (error) {
+            console.error("Error fetching suppliers:", error);
+            toast.error("Ошибка загрузки поставщиков");
+        }
+    }, []);
+
+    const searchSuppliers = useCallback(
+        async (query: string) => {
+            if (query.length < 3) {
+                fetchSuppliers();
+                return;
+            }
+
+            setIsSearchingSuppliers(true);
+            try {
+                const response = await PostSimple(
+                    `api/supplier/search?keyword=${encodeURIComponent(query)}`
+                );
+                const suppliersData =
+                    response?.data?.result || response?.data || [];
+                setSuppliers(suppliersData);
+            } catch (error) {
+                console.error("Error searching suppliers:", error);
+                fetchSuppliers();
+            } finally {
+                setIsSearchingSuppliers(false);
+            }
+        },
+        [fetchSuppliers]
+    );
+
+    const handleExcelFiltersChange = useCallback((filters: any) => {
+        setExcelFilters(filters);
+
+        // Count records based on filters
+        if (filters.start_date && filters.end_date) {
+            // Convert dates to DD-MM-YYYY format for API
+            const startDate = new Date(filters.start_date);
+            const endDate = new Date(filters.end_date);
+
+            const formatDate = (date: Date) => {
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
+            };
+
+            const startDateFormatted = formatDate(startDate);
+            const endDateFormatted = formatDate(endDate);
+
+            // Count records with date range
+            fetchKitchenCount(startDateFormatted, endDateFormatted);
+        }
+    }, []);
+
+    const fetchKitchenCount = useCallback(
+        async (startDate: string, endDate: string) => {
+            try {
+                const response = await GetDataSimple(
+                    `api/kitchen/list?start_date=${startDate}&end_date=${endDate}&page=1&limit=1`
+                );
+                const totalCount =
+                    response?.total || response?.data?.total || 0;
+                setExcelTotalCount(totalCount);
+            } catch (error) {
+                console.error("Error fetching kitchen count:", error);
+                setExcelTotalCount(0);
+            }
+        },
+        []
+    );
+
+    const handleExcelDownload = useCallback(async () => {
+        if (
+            !excelFilters.start_date ||
+            !excelFilters.end_date ||
+            !excelFilters.supplier_id
+        ) {
+            toast.error("Пожалуйста, заполните все поля");
+            return;
+        }
+
+        setIsExcelLoading(true);
+        try {
+            // Convert dates to DD-MM-YYYY format
+            const startDate = new Date(excelFilters.start_date);
+            const endDate = new Date(excelFilters.end_date);
+
+            const formatDate = (date: Date) => {
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`;
+            };
+
+            const startDateFormatted = formatDate(startDate);
+            const endDateFormatted = formatDate(endDate);
+
+            const url = `api/excel/kitchen?start_date=${startDateFormatted}&end_date=${endDateFormatted}&supplier_id=${excelFilters.supplier_id}&count=${excelTotalCount}`;
+
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Download failed");
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = `kitchen_${startDateFormatted}_${endDateFormatted}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
+
+            toast.success("Excel файл успешно скачан");
+            closeExcelModal();
+        } catch (error) {
+            console.error("Excel download error:", error);
+            toast.error("Ошибка при скачивании Excel файла");
+        } finally {
+            setIsExcelLoading(false);
+        }
+    }, [excelFilters, excelTotalCount, closeExcelModal]);
+
     // Initial fetch when component mounts
     useEffect(() => {
         if (activeTab === "kuxnya") {
             fetchKitchens();
         }
     }, [fetchKitchens, activeTab]);
+
+    // Fetch suppliers when Excel modal opens
+    useEffect(() => {
+        if (isExcelModalOpen) {
+            fetchSuppliers();
+        }
+    }, [isExcelModalOpen, fetchSuppliers]);
 
     // Handle search and page changes
     useEffect(() => {
@@ -225,25 +390,50 @@ export default function KitchenList() {
     const getAddButton = () => {
         if (activeTab === "kuxnya") {
             return (
-                <button
-                    onClick={openModal}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                >
-                    <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                <div className="flex gap-3">
+                    <button
+                        onClick={openModal}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
                     >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                        />
-                    </svg>
-                    Добавить кухню
-                </button>
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                            />
+                        </svg>
+                        Добавить кухню
+                    </button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={openExcelModal}
+                        startIcon={
+                            <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                            </svg>
+                        }
+                    >
+                        Скачать Excel
+                    </Button>
+                </div>
             );
         }
         return null;
@@ -276,6 +466,18 @@ export default function KitchenList() {
                     changeStatus={changeStatus}
                 />
             )}
+
+            <KitchenExcelDownloadModal
+                isOpen={isExcelModalOpen}
+                onClose={closeExcelModal}
+                onDownload={handleExcelDownload}
+                isLoading={isExcelLoading}
+                suppliers={suppliers}
+                onFiltersChange={handleExcelFiltersChange}
+                totalCount={excelTotalCount}
+                onSupplierSearch={searchSuppliers}
+                isSearchingSuppliers={isSearchingSuppliers}
+            />
 
             <Toaster
                 position="bottom-right"
