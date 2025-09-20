@@ -7,7 +7,7 @@ import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import TextArea from "../../components/form/input/TextArea";
 import Label from "../../components/form/Label";
-import { formatCurrency, formatAmount } from "../../utils/numberFormat";
+import { formatCurrency } from "../../utils/numberFormat";
 import toast from "react-hot-toast";
 
 interface AddPaymentModalProps {
@@ -41,6 +41,20 @@ export function AddPaymentModal({
     const [loading, setLoading] = useState(false);
     const [loadingArrivals, setLoadingArrivals] = useState(true);
     const [searchingArrivals, setSearchingArrivals] = useState(false);
+    const [dollarRate, setDollarRate] = useState<number>(0);
+
+    // Utility function for formatting numbers with spaces
+    const formatNumberWithSpaces = (value: string) => {
+        if (!value) return "";
+        // Remove any existing spaces
+        const cleanValue = value.replace(/\s/g, "");
+        // Split by decimal point
+        const parts = cleanValue.split(".");
+        // Format integer part with spaces
+        const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        // Return formatted number
+        return parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
+    };
 
     const paymentMethods = [
         { value: 1, label: "Наличка" },
@@ -97,9 +111,20 @@ export function AddPaymentModal({
         }
     };
 
+    const DollarRate = async () => {
+        try {
+            const response = await GetDataSimple("api/payments/dollar");
+            const rate = response.dollar_rate || response?.data?.result || 0;
+            setDollarRate(parseFloat(rate) || 0);
+        } catch (error) {
+            console.error("Error loading dollar rate:", error);
+        }
+    };
+
     useEffect(() => {
         if (isOpen) {
             loadArrivals();
+            DollarRate();
         }
     }, [isOpen]);
 
@@ -165,10 +190,13 @@ export function AddPaymentModal({
     return (
         <Modal isOpen={isOpen} onClose={handleClose} className="max-w-md">
             <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-start mb-4 gap-5">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                         Добавить платеж
                     </h2>
+                    <span className="text-green-500">
+                        доллар = {dollarRate} сум
+                    </span>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -246,27 +274,33 @@ export function AddPaymentModal({
                         <Input
                             type="text"
                             name="payment_amount"
-                            value={
-                                formData.payment_amount === "0"
-                                    ? ""
-                                    : formatAmount(formData.payment_amount)
-                            }
+                            value={formatNumberWithSpaces(
+                                formData.payment_amount
+                            )}
                             onChange={(e) => {
-                                // Remove all non-numeric characters except decimal point
-                                const numericValue = e.target.value.replace(
-                                    /[^\d.]/g,
-                                    ""
-                                );
-                                handleInputChange({
-                                    target: {
-                                        name: "payment_amount",
-                                        value: numericValue,
-                                    },
-                                } as React.ChangeEvent<HTMLInputElement>);
+                                const value = e.target.value.replace(/\s/g, ""); // Remove spaces for processing
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    payment_amount: value,
+                                }));
                             }}
                             placeholder="0"
                             required
                         />
+
+                        {/* Dollar hisobini chiqarish */}
+                        {formData.payment_amount && dollarRate > 0 && (
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                В долларах:{" "}
+                                <span className="font-medium text-green-600">
+                                    {(
+                                        parseFloat(formData.payment_amount) /
+                                        dollarRate
+                                    ).toFixed(2)}{" "}
+                                    $
+                                </span>
+                            </p>
+                        )}
                     </div>
 
                     <div>

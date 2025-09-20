@@ -174,8 +174,10 @@ export default function PaymentList() {
             loadPayments(currentPage);
             setIsDeleteModalOpen(false);
             setPaymentToDelete(null);
-        } catch (error) {
-            toast.error("Ошибка при удалении платежа");
+        } catch (error: any) {
+            setIsDeleteModalOpen(false);
+
+            toast.error(error.response.data.error);
         } finally {
             setIsDeleting(false);
         }

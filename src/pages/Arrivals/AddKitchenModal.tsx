@@ -17,31 +17,30 @@ interface Material {
     material_name: string;
 }
 
-interface ArrivalItem {
+interface KitchenItem {
     material_id: number;
     amount: number;
     price: number;
 }
 
-interface AddArrivalProps {
+interface AddKitchenModalProps {
     isOpen: boolean;
     onClose: () => void;
     changeStatus: () => void;
 }
 
-export default function AddArrival({
+export default function AddKitchenModal({
     isOpen,
     onClose,
     changeStatus,
-}: AddArrivalProps) {
+}: AddKitchenModalProps) {
     const [formData, setFormData] = useState({
         supplier_id: "",
         comments: "",
         invoice_number: "",
-        cash_type: "0", // 0 - Доллар, 1 - сум
         delivery_price: "",
     });
-    const [items, setItems] = useState<ArrivalItem[]>([
+    const [items, setItems] = useState<KitchenItem[]>([
         { material_id: 0, amount: 0, price: 0 },
     ]);
     const [itemInputs, setItemInputs] = useState<
@@ -177,7 +176,7 @@ export default function AddArrival({
 
     const handleItemChange = (
         index: number,
-        field: keyof ArrivalItem,
+        field: keyof KitchenItem,
         value: string | number
     ) => {
         const newItems = [...items];
@@ -253,7 +252,6 @@ export default function AddArrival({
                 supplier_id: parseInt(formData.supplier_id),
                 comments: formData.comments,
                 invoice_number: formData.invoice_number,
-                cash_type: formData.cash_type,
                 delivery_price: parseFloat(formData.delivery_price),
                 items: validItems.map((item) => ({
                     material_id: item.material_id,
@@ -268,7 +266,7 @@ export default function AddArrival({
             console.log("Items length:", requestData.items.length);
 
             const response = await PostSimple(
-                "api/arrival/create",
+                "api/kitchen/create",
                 requestData
             );
 
@@ -278,16 +276,16 @@ export default function AddArrival({
             console.log("Response data:", response?.data);
 
             if (response?.status === 200 || response?.data?.success) {
-                toast.success("Приход успешно создан");
+                toast.success("Кухня успешно создана");
                 resetForm();
                 changeStatus();
                 onClose();
             } else {
-                toast.error("Что-то пошло не так при создании прихода");
+                toast.error("Что-то пошло не так при создании кухни");
             }
         } catch (error) {
-            console.error("Error creating arrival:", error);
-            toast.error("Что-то пошло не так при создании прихода");
+            console.error("Error creating kitchen:", error);
+            toast.error("Что-то пошло не так при создании кухни");
         } finally {
             setLoading(false);
         }
@@ -298,7 +296,6 @@ export default function AddArrival({
             supplier_id: "",
             comments: "",
             invoice_number: "",
-            cash_type: "0",
             delivery_price: "",
         });
         setItems([{ material_id: 0, amount: 0, price: 0 }]);
@@ -316,6 +313,8 @@ export default function AddArrival({
             return total + item.amount * item.price;
         }, 0);
     };
+
+    // Utility function for formatting
 
     const totalSum = calculateTotalSum();
 
@@ -336,7 +335,7 @@ export default function AddArrival({
         <Modal isOpen={isOpen} onClose={handleClose} className="max-w-5xl">
             <div className="p-6">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                    Добавить новый приход
+                    Добавить приход на кухню
                 </h3>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
@@ -393,27 +392,7 @@ export default function AddArrival({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-3">
-                            <Label htmlFor="cash-type-select">
-                                <span className="text-red-500 mr-1">*</span>
-                                Валюта
-                            </Label>
-                            <Select
-                                options={[
-                                    { value: 0, label: "Доллар" },
-                                    { value: 1, label: "Сум" },
-                                ]}
-                                placeholder="Выберите валюту"
-                                onChange={(value) =>
-                                    handleSelectChange("cash_type", value)
-                                }
-                                defaultValue={formData.cash_type}
-                                className="relative"
-                                style={{ zIndex: 9998 }}
-                            />
-                        </div>
-
+                    <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                         <div className="space-y-3">
                             <label className="block text-sm font-normal text-gray-800 dark:text-gray-200 mb-1">
                                 <span className="text-red-500 mr-1">*</span>

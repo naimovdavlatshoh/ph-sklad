@@ -11,6 +11,8 @@ import { useModal } from "../../hooks/useModal.ts";
 import Loader from "../../components/ui/loader/Loader.tsx";
 import TableArrival from "./TableArrival.tsx";
 import AddArrival from "./AddArrival.tsx";
+import TableKitchen from "./TableKitchen.tsx";
+import AddKitchenModal from "./AddKitchenModal.tsx";
 import TabNavigation from "../../components/common/TabNavigation.tsx";
 import TableOstatki from "../Warehouse/TableOstatki.tsx";
 import TableExpenses from "../Expenses/TableExpenses.tsx";
@@ -45,16 +47,47 @@ interface Arrival {
     comments: string;
     created_at: string;
     total_payments: string;
+    cash_type_text: string;
+    cash_type: string;
     payment_history: PaymentHistory[];
+}
+
+interface Kitchen {
+    kitchen_id: string;
+    invoice_number: string;
+    user_name: string;
+    supplier_id: string;
+    supplier_name: string;
+    total_price: string;
+    delivery_price: string;
+    comments: string;
+    created_at: string;
+    items?: KitchenItem[];
+}
+
+interface KitchenItem {
+    kitchen_item_id: string;
+    kitchen_id: string;
+    material_id: string;
+    material_name: string;
+    amount: string;
+    price: string;
+    created_at: string;
 }
 
 export default function ArrivalList() {
     const { searchQuery, currentPage, setIsSearching } = useSearch();
     const [filteredArrivals, setFilteredArrivals] = useState<Arrival[]>([]);
+    const [filteredKitchens, setFilteredKitchens] = useState<Kitchen[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [status, setStatus] = useState(false);
     const { isOpen, openModal, closeModal } = useModal();
+    const {
+        isOpen: isKitchenModalOpen,
+        openModal: openKitchenModal,
+        closeModal: closeKitchenModal,
+    } = useModal();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("prixod");
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
@@ -76,6 +109,10 @@ export default function ArrivalList() {
         {
             id: "prixod",
             label: "Приход",
+        },
+        {
+            id: "kuxnya",
+            label: "Кухня",
         },
         {
             id: "rasxod",
@@ -103,28 +140,65 @@ export default function ArrivalList() {
         }
     }, [page]);
 
+    const fetchKitchens = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response: any = await GetDataSimple(
+                `api/kitchen/list?page=${page}&limit=10`
+            );
+            const kitchensData =
+                response?.result || response?.data?.result || [];
+            const totalPagesData =
+                response?.pages || response?.data?.pages || 1;
+
+            setFilteredKitchens(kitchensData);
+            setTotalPages(totalPagesData);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching kitchens:", error);
+            toast.error("Что-то пошло не так при загрузке кухни");
+        }
+    }, [page]);
+
     const performSearch = useCallback(
         async (query: string) => {
             if (!query.trim()) {
-                // If search is empty, fetch all arrivals
-                fetchArrivals();
+                // If search is empty, fetch all data based on active tab
+                if (activeTab === "prixod") {
+                    fetchArrivals();
+                } else if (activeTab === "kuxnya") {
+                    fetchKitchens();
+                }
                 return;
             }
 
-            // If search query is too short, don't search, just fetch all arrivals
+            // If search query is too short, don't search, just fetch all data
             if (query.trim().length < 3) {
-                console.log("Search query is too short, fetching all arrivals");
-                fetchArrivals();
+                console.log("Search query is too short, fetching all data");
+                if (activeTab === "prixod") {
+                    fetchArrivals();
+                } else if (activeTab === "kuxnya") {
+                    fetchKitchens();
+                }
                 return;
             }
 
             setIsSearching(true);
             try {
-                const response: any = await PostSimple(
-                    `api/arrival/search?keyword=${encodeURIComponent(
-                        query
-                    )}&page=${page}&limit=10`
-                );
+                let response: any;
+                if (activeTab === "prixod") {
+                    response = await PostSimple(
+                        `api/arrival/search?keyword=${encodeURIComponent(
+                            query
+                        )}&page=${page}&limit=10`
+                    );
+                } else if (activeTab === "kuxnya") {
+                    response = await PostSimple(
+                        `api/kitchen/search?keyword=${encodeURIComponent(
+                            query
+                        )}&page=${page}&limit=10`
+                    );
+                }
 
                 if (response?.status === 200 || response?.data?.success) {
                     const searchResults =
@@ -132,27 +206,41 @@ export default function ArrivalList() {
                     const totalPagesData =
                         response?.data?.pages || response?.pages || 1;
 
-                    setFilteredArrivals(searchResults);
+                    if (activeTab === "prixod") {
+                        setFilteredArrivals(searchResults);
+                    } else if (activeTab === "kuxnya") {
+                        setFilteredKitchens(searchResults);
+                    }
                     setTotalPages(totalPagesData);
                 } else {
-                    fetchArrivals();
+                    if (activeTab === "prixod") {
+                        fetchArrivals();
+                    } else if (activeTab === "kuxnya") {
+                        fetchKitchens();
+                    }
                 }
             } catch (error) {
                 console.error("Search error:", error);
-                fetchArrivals();
+                if (activeTab === "prixod") {
+                    fetchArrivals();
+                } else if (activeTab === "kuxnya") {
+                    fetchKitchens();
+                }
             } finally {
                 setIsSearching(false);
             }
         },
-        [page, fetchArrivals]
+        [page, fetchArrivals, fetchKitchens, activeTab]
     );
 
     const changeStatus = useCallback(() => {
         setStatus(!status);
         if (activeTab === "prixod") {
             fetchArrivals();
+        } else if (activeTab === "kuxnya") {
+            fetchKitchens();
         }
-    }, [status, fetchArrivals, activeTab]);
+    }, [status, fetchArrivals, fetchKitchens, activeTab]);
 
     const fetchSuppliers = useCallback(async () => {
         try {
@@ -369,9 +457,13 @@ export default function ArrivalList() {
 
     // Initial fetch when component mounts
     useEffect(() => {
-        fetchArrivals();
+        if (activeTab === "prixod") {
+            fetchArrivals();
+        } else if (activeTab === "kuxnya") {
+            fetchKitchens();
+        }
         fetchSuppliers();
-    }, [fetchArrivals, fetchSuppliers]);
+    }, [fetchArrivals, fetchKitchens, fetchSuppliers, activeTab]);
 
     // Handle search and page changes
     useEffect(() => {
@@ -381,13 +473,20 @@ export default function ArrivalList() {
             status,
             activeTab,
         });
-        if (currentPage === "arrivals" && activeTab === "prixod") {
+        if (
+            currentPage === "arrivals" &&
+            (activeTab === "prixod" || activeTab === "kuxnya")
+        ) {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
                 console.log("Performing search for:", searchQuery);
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all arrivals");
-                fetchArrivals();
+                console.log("Empty search, fetching all data");
+                if (activeTab === "prixod") {
+                    fetchArrivals();
+                } else if (activeTab === "kuxnya") {
+                    fetchKitchens();
+                }
             } else {
                 console.log(
                     "Search query too short, waiting for more characters"
@@ -402,6 +501,7 @@ export default function ArrivalList() {
         activeTab,
         performSearch,
         fetchArrivals,
+        fetchKitchens,
     ]);
 
     if (loading) {
@@ -432,6 +532,20 @@ export default function ArrivalList() {
                         />
                     </>
                 );
+            case "kuxnya":
+                return (
+                    <>
+                        <TableKitchen
+                            kitchens={filteredKitchens}
+                            changeStatus={changeStatus}
+                        />
+                        <Pagination
+                            currentPage={page}
+                            totalPages={totalPages}
+                            onPageChange={setPage}
+                        />
+                    </>
+                );
             case "rasxod":
                 return (
                     <TableExpenses
@@ -451,6 +565,8 @@ export default function ArrivalList() {
                 return "Склад";
             case "prixod":
                 return "Склад";
+            case "kuxnya":
+                return "Кухня";
             case "rasxod":
                 return "Склад";
             default:
@@ -506,6 +622,28 @@ export default function ArrivalList() {
                     </button>
                 </div>
             );
+        } else if (activeTab === "kuxnya") {
+            return (
+                <button
+                    onClick={openKitchenModal}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                >
+                    <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                        />
+                    </svg>
+                    Добавить кухню
+                </button>
+            );
         }
         return null;
     };
@@ -532,6 +670,17 @@ export default function ArrivalList() {
                     isOpen={isOpen}
                     onClose={() => {
                         closeModal();
+                        changeStatus();
+                    }}
+                    changeStatus={changeStatus}
+                />
+            )}
+
+            {activeTab === "kuxnya" && (
+                <AddKitchenModal
+                    isOpen={isKitchenModalOpen}
+                    onClose={() => {
+                        closeKitchenModal();
                         changeStatus();
                     }}
                     changeStatus={changeStatus}

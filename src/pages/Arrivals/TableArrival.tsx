@@ -107,6 +107,8 @@ interface Arrival {
     total_payments: string;
     payment_history: PaymentHistory[];
     items?: ArrivalItem[];
+    cash_type_text: string;
+    cash_type: string;
 }
 
 interface TableArrivalProps {
@@ -252,6 +254,12 @@ export default function TableArrival({
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                     Общая сумма
                                 </th>
+                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                    Цена доставки
+                                </th>
+                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                    Валюта
+                                </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">
                                     Комментарии
                                 </th>
@@ -307,21 +315,21 @@ export default function TableArrival({
                                         <td className="px-5 py-4 text-sm text-black dark:text-white">
                                             <div className="space-y-2">
                                                 <div className="font-medium">
-                                                    {parseInt(
+                                                    {parseFloat(
                                                         arrival.total_payments ||
                                                             "0"
                                                     ) > 0 &&
-                                                    parseInt(
+                                                    parseFloat(
                                                         arrival.total_payments ||
                                                             "0"
                                                     ) <
-                                                        parseInt(
+                                                        parseFloat(
                                                             arrival.total_price
                                                         ) ? (
                                                         // Qisman to'langan holatda
                                                         <>
                                                             <span className="text-green-600 dark:text-green-400">
-                                                                {parseInt(
+                                                                {parseFloat(
                                                                     arrival.total_payments ||
                                                                         "0"
                                                                 )
@@ -336,7 +344,7 @@ export default function TableArrival({
                                                                 /{" "}
                                                             </span>
                                                             <span className="text-red-600 dark:text-red-400">
-                                                                {parseInt(
+                                                                {parseFloat(
                                                                     arrival.total_price
                                                                 )
                                                                     .toLocaleString()
@@ -350,16 +358,16 @@ export default function TableArrival({
                                                                 сум
                                                             </span>
                                                         </>
-                                                    ) : parseInt(
+                                                    ) : parseFloat(
                                                           arrival.total_payments ||
                                                               "0"
                                                       ) >=
-                                                      parseInt(
+                                                      parseFloat(
                                                           arrival.total_price
                                                       ) ? (
                                                         // 100% to'langan holatda
                                                         <span className="text-green-600 dark:text-green-400">
-                                                            {parseInt(
+                                                            {parseFloat(
                                                                 arrival.total_price
                                                             )
                                                                 .toLocaleString()
@@ -372,7 +380,7 @@ export default function TableArrival({
                                                     ) : (
                                                         // 0% to'lanmagan holatda
                                                         <span className="text-red-600 dark:text-red-400">
-                                                            {parseInt(
+                                                            {parseFloat(
                                                                 arrival.total_price
                                                             )
                                                                 .toLocaleString()
@@ -388,11 +396,11 @@ export default function TableArrival({
                                                     {/* To'langan qism - 100% bo'lsa yashil, aks holda sariq */}
                                                     <div
                                                         className={`h-2 absolute left-0 top-0 ${
-                                                            parseInt(
+                                                            parseFloat(
                                                                 arrival.total_payments ||
                                                                     "0"
                                                             ) >=
-                                                            parseInt(
+                                                            parseFloat(
                                                                 arrival.total_price
                                                             )
                                                                 ? "bg-green-500 rounded-full"
@@ -400,11 +408,11 @@ export default function TableArrival({
                                                         }`}
                                                         style={{
                                                             width: `${Math.min(
-                                                                (parseInt(
+                                                                (parseFloat(
                                                                     arrival.total_payments ||
                                                                         "0"
                                                                 ) /
-                                                                    parseInt(
+                                                                    parseFloat(
                                                                         arrival.total_price
                                                                     )) *
                                                                     100,
@@ -413,11 +421,11 @@ export default function TableArrival({
                                                         }}
                                                     ></div>
                                                     {/* To'lanmagan qism - faqat 100% bo'lmagan holatda ko'rsatiladi */}
-                                                    {parseInt(
+                                                    {parseFloat(
                                                         arrival.total_payments ||
                                                             "0"
                                                     ) <
-                                                        parseInt(
+                                                        parseFloat(
                                                             arrival.total_price
                                                         ) && (
                                                         <div
@@ -426,11 +434,11 @@ export default function TableArrival({
                                                                 width: `${
                                                                     100 -
                                                                     Math.min(
-                                                                        (parseInt(
+                                                                        (parseFloat(
                                                                             arrival.total_payments ||
                                                                                 "0"
                                                                         ) /
-                                                                            parseInt(
+                                                                            parseFloat(
                                                                                 arrival.total_price
                                                                             )) *
                                                                             100,
@@ -438,11 +446,11 @@ export default function TableArrival({
                                                                     )
                                                                 }%`,
                                                                 left: `${Math.min(
-                                                                    (parseInt(
+                                                                    (parseFloat(
                                                                         arrival.total_payments ||
                                                                             "0"
                                                                     ) /
-                                                                        parseInt(
+                                                                        parseFloat(
                                                                             arrival.total_price
                                                                         )) *
                                                                         100,
@@ -453,6 +461,19 @@ export default function TableArrival({
                                                     )}
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
+                                            {arrival.delivery_price
+                                                ? parseFloat(
+                                                      arrival.delivery_price
+                                                  )
+                                                      .toLocaleString()
+                                                      .replace(/,/g, " ") +
+                                                  ""
+                                                : "—"}
+                                        </td>
+                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
+                                            {arrival.cash_type_text}
                                         </td>
                                         <td className="px-5 py-4 text-sm text-center">
                                             {arrival.comments &&
@@ -723,7 +744,7 @@ export default function TableArrival({
                                                             .replace(/,/g, " ")}
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                        {parseInt(item.price)
+                                                        {parseFloat(item.price)
                                                             .toLocaleString()
                                                             .replace(
                                                                 /,/g,
@@ -736,7 +757,9 @@ export default function TableArrival({
                                                             parseFloat(
                                                                 item.amount
                                                             ) *
-                                                            parseInt(item.price)
+                                                            parseFloat(
+                                                                item.price
+                                                            )
                                                         )
                                                             .toLocaleString()
                                                             .replace(
@@ -772,7 +795,7 @@ export default function TableArrival({
                                                         parseFloat(
                                                             item.amount
                                                         ) *
-                                                            parseInt(
+                                                            parseFloat(
                                                                 item.price
                                                             ),
                                                     0
@@ -829,7 +852,7 @@ export default function TableArrival({
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                     <div className="font-medium text-green-600 dark:text-green-400">
-                                                        {parseInt(
+                                                        {parseFloat(
                                                             payment.payment_amount
                                                         )
                                                             .toLocaleString()

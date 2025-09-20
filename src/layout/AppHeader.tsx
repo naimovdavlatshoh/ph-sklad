@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
 import { useSearch } from "../context/SearchContext";
 // import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
-import NotificationDropdown from "../components/header/NotificationDropdown";
+// import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
 import DollarRateModal from "../components/modals/DollarRateModal";
 import { GetDataSimple } from "../service/data";
@@ -260,7 +260,7 @@ const AppHeader: React.FC = () => {
                                 </svg>
                             </button>
                         </div>
-                        <NotificationDropdown />
+                        {/* <NotificationDropdown /> */}
                         {/* <!-- Notification Menu Area --> */}
                     </div>
                     {/* <!-- User Area --> */}
