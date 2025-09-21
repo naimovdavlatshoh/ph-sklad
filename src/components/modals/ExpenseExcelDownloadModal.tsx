@@ -58,8 +58,7 @@ export default function ExpenseExcelDownloadModal({
         onDownload();
     };
 
-    const isFormValid =
-        filters.start_date && filters.end_date && filters.object_id;
+    const isFormValid = filters.start_date && filters.end_date;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} className="max-w-lg">

@@ -9,56 +9,42 @@ import { useSearch } from "../../context/SearchContext";
 import { toast } from "react-hot-toast";
 import { useModal } from "../../hooks/useModal.ts";
 import Loader from "../../components/ui/loader/Loader.tsx";
-import TableArrival from "./TableArrival.tsx";
-import AddArrival from "./AddArrival.tsx";
-import TabNavigation from "../../components/common/TabNavigation.tsx";
-import TableOstatki from "../Warehouse/TableOstatki.tsx";
-import TableExpenses from "../Expenses/TableExpenses.tsx";
-import ArrivalExcelDownloadModal from "../../components/modals/ArrivalExcelDownloadModal.tsx";
+import TableKitchen from "../Arrivals/TableKitchen.tsx";
+import AddKitchenModal from "../Arrivals/AddKitchenModal.tsx";
+import KitchenExcelDownloadModal from "../../components/modals/KitchenExcelDownloadModal.tsx";
 import Button from "../../components/ui/button/Button.tsx";
 
-interface PaymentHistory {
-    payment_id: string;
-    user_id: string;
-    user_name: string;
-    arrival_id: string;
-    payment_amount: string;
-    payment_method: string;
-    payment_method_text: string;
-    cash_type: string;
-    cash_type_text: string;
-    payment_dollar_rate: string;
-    created_at: string;
-}
-
-interface Arrival {
-    arrival_id: string;
+interface Kitchen {
+    kitchen_id: string;
     invoice_number: string;
     user_name: string;
     supplier_id: string;
     supplier_name: string;
-    payment_status: string;
-    payment_status_text: string;
     total_price: string;
     delivery_price: string;
-    arrival_dollar_rate: string;
     comments: string;
     created_at: string;
-    total_payments: string;
-    cash_type_text: string;
-    cash_type: string;
-    payment_history: PaymentHistory[];
+    items?: KitchenItem[];
 }
 
-export default function ArrivalList() {
+interface KitchenItem {
+    kitchen_item_id: string;
+    kitchen_id: string;
+    material_id: string;
+    material_name: string;
+    amount: string;
+    price: string;
+    created_at: string;
+}
+
+export default function KitchenList() {
     const { searchQuery, currentPage, setIsSearching } = useSearch();
-    const [filteredArrivals, setFilteredArrivals] = useState<Arrival[]>([]);
+    const [filteredKitchens, setFilteredKitchens] = useState<Kitchen[]>([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [status, setStatus] = useState(false);
     const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState("prixod");
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -70,70 +56,47 @@ export default function ArrivalList() {
     });
     const [totalCount, setTotalCount] = useState(0);
 
-    const tabs = [
-        {
-            id: "ostatki",
-            label: "Остатки",
-        },
-        {
-            id: "prixod",
-            label: "Приход",
-        },
-        {
-            id: "rasxod",
-            label: "Расход",
-        },
-    ];
-
-    const fetchArrivals = useCallback(async () => {
+    const fetchKitchens = useCallback(async () => {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/arrival/list?page=${page}&limit=10`
+                `api/kitchen/list?page=${page}&limit=10`
             );
-            const arrivalsData =
+            const kitchensData =
                 response?.result || response?.data?.result || [];
             const totalPagesData =
                 response?.pages || response?.data?.pages || 1;
 
-            setFilteredArrivals(arrivalsData);
+            setFilteredKitchens(kitchensData);
             setTotalPages(totalPagesData);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching arrivals:", error);
-            toast.error("Что-то пошло не так при загрузке приходов");
+            console.error("Error fetching kitchens:", error);
+            toast.error("Что-то пошло не так при загрузке кухни");
         }
     }, [page]);
 
     const performSearch = useCallback(
         async (query: string) => {
             if (!query.trim()) {
-                // If search is empty, fetch all data based on active tab
-                if (activeTab === "prixod") {
-                    fetchArrivals();
-                }
+                fetchKitchens();
                 return;
             }
 
             // If search query is too short, don't search, just fetch all data
             if (query.trim().length < 3) {
                 console.log("Search query is too short, fetching all data");
-                if (activeTab === "prixod") {
-                    fetchArrivals();
-                }
+                fetchKitchens();
                 return;
             }
 
             setIsSearching(true);
             try {
-                let response: any;
-                if (activeTab === "prixod") {
-                    response = await PostSimple(
-                        `api/arrival/search?keyword=${encodeURIComponent(
-                            query
-                        )}&page=${page}&limit=10`
-                    );
-                }
+                const response: any = await PostSimple(
+                    `api/kitchen/search?keyword=${encodeURIComponent(
+                        query
+                    )}&page=${page}&limit=10`
+                );
 
                 if (response?.status === 200 || response?.data?.success) {
                     const searchResults =
@@ -141,33 +104,25 @@ export default function ArrivalList() {
                     const totalPagesData =
                         response?.data?.pages || response?.pages || 1;
 
-                    if (activeTab === "prixod") {
-                        setFilteredArrivals(searchResults);
-                    }
+                    setFilteredKitchens(searchResults);
                     setTotalPages(totalPagesData);
                 } else {
-                    if (activeTab === "prixod") {
-                        fetchArrivals();
-                    }
+                    fetchKitchens();
                 }
             } catch (error) {
                 console.error("Search error:", error);
-                if (activeTab === "prixod") {
-                    fetchArrivals();
-                }
+                fetchKitchens();
             } finally {
                 setIsSearching(false);
             }
         },
-        [page, fetchArrivals, activeTab]
+        [page, fetchKitchens]
     );
 
     const changeStatus = useCallback(() => {
         setStatus(!status);
-        if (activeTab === "prixod") {
-            fetchArrivals();
-        }
-    }, [status, fetchArrivals, activeTab]);
+        fetchKitchens();
+    }, [status, fetchKitchens]);
 
     const fetchSuppliers = useCallback(async () => {
         try {
@@ -257,7 +212,7 @@ export default function ArrivalList() {
             }
 
             const response = await fetch(
-                `${BASE_URL}api/excel/arrival?${params.toString()}`,
+                `${BASE_URL}api/excel/kitchen?${params.toString()}`,
                 {
                     method: "GET",
                     headers: {
@@ -279,7 +234,7 @@ export default function ArrivalList() {
             const url = window.URL.createObjectURL(excelBlob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = `Приходы_${formatDateToDDMMYYYY(
+            link.download = `Кухня_${formatDateToDDMMYYYY(
                 excelFilters.start_date
             )}_${formatDateToDDMMYYYY(excelFilters.end_date)}.xlsx`;
             link.style.display = "none";
@@ -360,7 +315,7 @@ export default function ArrivalList() {
             }
 
             const response = await fetch(
-                `${BASE_URL}api/excel/arrival?${params.toString()}`,
+                `${BASE_URL}api/excel/kitchen?${params.toString()}`,
                 {
                     method: "GET",
                     headers: {
@@ -384,11 +339,9 @@ export default function ArrivalList() {
 
     // Initial fetch when component mounts
     useEffect(() => {
-        if (activeTab === "prixod") {
-            fetchArrivals();
-        }
+        fetchKitchens();
         fetchSuppliers();
-    }, [fetchArrivals, fetchSuppliers, activeTab]);
+    }, [fetchKitchens, fetchSuppliers]);
 
     // Handle search and page changes
     useEffect(() => {
@@ -396,17 +349,14 @@ export default function ArrivalList() {
             currentPage,
             searchQuery,
             status,
-            activeTab,
         });
-        if (currentPage === "arrivals" && activeTab === "prixod") {
+        if (currentPage === "kitchen") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
                 console.log("Performing search for:", searchQuery);
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
                 console.log("Empty search, fetching all data");
-                if (activeTab === "prixod") {
-                    fetchArrivals();
-                }
+                fetchKitchens();
             } else {
                 console.log(
                     "Search query too short, waiting for more characters"
@@ -414,151 +364,90 @@ export default function ArrivalList() {
                 // Don't do anything, just wait for user to type more
             }
         }
-    }, [
-        searchQuery,
-        currentPage,
-        status,
-        activeTab,
-        performSearch,
-        fetchArrivals,
-    ]);
+    }, [searchQuery, currentPage, status, performSearch, fetchKitchens]);
 
     if (loading) {
         return <Loader />;
     }
 
-    const renderTabContent = () => {
-        switch (activeTab) {
-            case "ostatki":
-                return (
-                    <TableOstatki
-                        searchQuery={searchQuery}
-                        currentPage={page}
-                        onPageChange={setPage}
-                    />
-                );
-            case "prixod":
-                return (
-                    <>
-                        <TableArrival
-                            arrivals={filteredArrivals}
-                            changeStatus={changeStatus}
-                        />
-                        <Pagination
-                            currentPage={page}
-                            totalPages={totalPages}
-                            onPageChange={setPage}
-                        />
-                    </>
-                );
-            case "rasxod":
-                return (
-                    <TableExpenses
-                        searchQuery={searchQuery}
-                        currentPage={page}
-                        onPageChange={setPage}
-                    />
-                );
-            default:
-                return null;
-        }
-    };
-
-    const getPageTitle = () => {
-        switch (activeTab) {
-            case "ostatki":
-                return "Склад";
-            case "prixod":
-                return "Склад";
-            case "rasxod":
-                return "Склад";
-            default:
-                return "Склад";
-        }
-    };
-
-    const getAddButton = () => {
-        if (activeTab === "prixod") {
-            return (
-                <div className="flex gap-3">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsExcelModalOpen(true)}
-                        startIcon={
-                            <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                            </svg>
-                        }
-                    >
-                        Скачать Excel
-                    </Button>
-                    <button
-                        onClick={openModal}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        Добавить приход
-                    </button>
-                </div>
-            );
-        }
-        return null;
-    };
-
     return (
         <>
-            <PageMeta title="PH-sklad" description={getPageTitle()} />
-            <PageBreadcrumb pageTitle={getPageTitle()} />
+            <PageMeta title="PH-sklad" description="Кухня" />
+            <PageBreadcrumb pageTitle="Кухня" />
 
             <div className="space-y-6">
-                <TabNavigation
-                    tabs={tabs}
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                />
-
-                <ComponentCard title={getPageTitle()} desc={getAddButton()}>
-                    {renderTabContent()}
+                <ComponentCard
+                    title="Кухня"
+                    desc={
+                        <div className="flex gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsExcelModalOpen(true)}
+                                startIcon={
+                                    <svg
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        />
+                                    </svg>
+                                }
+                            >
+                                Скачать Excel
+                            </Button>
+                            <button
+                                onClick={openModal}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                            >
+                                <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                    />
+                                </svg>
+                                Добавить приход на кухню
+                            </button>
+                        </div>
+                    }
+                >
+                    <TableKitchen
+                        kitchens={filteredKitchens}
+                        changeStatus={changeStatus}
+                    />
+                    <Pagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        onPageChange={setPage}
+                    />
                 </ComponentCard>
             </div>
 
-            {activeTab === "prixod" && (
-                <AddArrival
-                    isOpen={isOpen}
-                    onClose={() => {
-                        closeModal();
-                        changeStatus();
-                    }}
-                    changeStatus={changeStatus}
-                />
-            )}
+            <AddKitchenModal
+                isOpen={isOpen}
+                onClose={() => {
+                    closeModal();
+                    changeStatus();
+                }}
+                changeStatus={changeStatus}
+            />
 
-            {/* Arrival Excel Download Modal */}
-            <ArrivalExcelDownloadModal
+            {/* Kitchen Excel Download Modal */}
+            <KitchenExcelDownloadModal
                 isOpen={isExcelModalOpen}
                 onClose={() => setIsExcelModalOpen(false)}
                 onDownload={handleExcelDownload}

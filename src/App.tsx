@@ -27,6 +27,7 @@ import MaterialList from "./pages/Materials";
 import SupplierList from "./pages/Suppliers";
 import ForemanList from "./pages/Foremen";
 import ArrivalList from "./pages/Arrivals";
+import KitchenList from "./pages/Kitchen/KitchenList";
 import { MaterialsIssuesList } from "./pages/MaterialsIssues";
 import { WriteOff } from "./pages/WriteOff";
 import { BalanceList } from "./pages/Balance";
@@ -108,6 +109,8 @@ export default function App() {
                             <Route path="/foremen" element={<ForemanList />} />
 
                             <Route path="/arrivals" element={<ArrivalList />} />
+
+                            <Route path="/kitchen" element={<KitchenList />} />
 
                             <Route
                                 path="/materialsissues"

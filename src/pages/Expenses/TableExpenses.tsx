@@ -237,9 +237,6 @@ export default function TableExpenses({
                 params.append("object_id", excelFilters.object_id);
             }
 
-            // Add count parameter as mentioned in the API URL
-            params.append("count", "1");
-
             const response = await fetch(
                 `${BASE_URL}api/excel/expenses?${params.toString()}`,
                 {
