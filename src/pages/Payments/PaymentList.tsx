@@ -131,7 +131,7 @@ export default function PaymentList() {
     const loadPayments = async (page: number = 1) => {
         try {
             setLoading(true);
-            const response = await GetPaymentsList(page, 10);
+            const response = await GetPaymentsList(page, 30);
             setPayments(response?.result || []);
             setTotalPages(response.pages || 1);
             setCurrentPage(page);

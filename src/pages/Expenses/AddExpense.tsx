@@ -6,7 +6,6 @@ import {
     PostSimple,
 } from "../../service/data";
 import { toast } from "react-hot-toast";
-import { formatAmount } from "../../utils/numberFormat";
 import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
 import Label from "../../components/form/Label";
@@ -45,6 +44,9 @@ export default function AddExpense({
     });
     const [items, setItems] = useState<ExpenseItem[]>([
         { material_id: 0, quantity: 0 },
+    ]);
+    const [itemInputs, setItemInputs] = useState<{ quantity: string }[]>([
+        { quantity: "" },
     ]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -145,12 +147,15 @@ export default function AddExpense({
 
     const addItem = () => {
         setItems([...items, { material_id: 0, quantity: 0 }]);
+        setItemInputs([...itemInputs, { quantity: "" }]);
     };
 
     const removeItem = (index: number) => {
         if (items.length > 1) {
             const newItems = items.filter((_, i) => i !== index);
+            const newInputs = itemInputs.filter((_, i) => i !== index);
             setItems(newItems);
+            setItemInputs(newInputs);
         }
     };
 
@@ -223,8 +228,21 @@ export default function AddExpense({
             comments: "",
         });
         setItems([{ material_id: 0, quantity: 0 }]);
+        setItemInputs([{ quantity: "" }]);
         setError(null);
         onClose();
+    };
+
+    const formatNumberWithSpaces = (value: string) => {
+        if (!value) return "";
+        // Remove any existing spaces
+        const cleanValue = value.replace(/\s/g, "");
+        // Split by decimal point
+        const parts = cleanValue.split(".");
+        // Format integer part with spaces
+        const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        // Return formatted number
+        return parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
     };
 
     return (
@@ -360,29 +378,48 @@ export default function AddExpense({
                                             </label>
                                             <InputField
                                                 type="text"
-                                                value={
-                                                    item.quantity === 0
-                                                        ? ""
-                                                        : formatAmount(
-                                                              item.quantity
-                                                          )
-                                                }
+                                                value={formatNumberWithSpaces(
+                                                    itemInputs[index]
+                                                        ?.quantity || ""
+                                                )}
                                                 onChange={(e) => {
-                                                    // Remove all non-numeric characters except decimal point
-                                                    const numericValue =
+                                                    const value =
                                                         e.target.value.replace(
-                                                            /[^\d.]/g,
+                                                            /\s/g,
                                                             ""
+                                                        ); // Remove spaces for processing
+                                                    // Allow empty string, numbers, and decimal points
+                                                    if (
+                                                        value === "" ||
+                                                        /^\d*\.?\d*$/.test(
+                                                            value
+                                                        )
+                                                    ) {
+                                                        // Update the input display
+                                                        const newInputs = [
+                                                            ...itemInputs,
+                                                        ];
+                                                        newInputs[index] = {
+                                                            ...newInputs[index],
+                                                            quantity: value,
+                                                        };
+                                                        setItemInputs(
+                                                            newInputs
                                                         );
-                                                    const parsedValue =
-                                                        parseInt(
-                                                            numericValue
-                                                        ) || 0;
-                                                    handleItemChange(
-                                                        index,
-                                                        "quantity",
-                                                        parsedValue
-                                                    );
+
+                                                        // Update the actual data
+                                                        const parsedValue =
+                                                            value === ""
+                                                                ? 0
+                                                                : parseFloat(
+                                                                      value
+                                                                  ) || 0;
+                                                        handleItemChange(
+                                                            index,
+                                                            "quantity",
+                                                            parsedValue
+                                                        );
+                                                    }
                                                 }}
                                                 placeholder="0"
                                                 className="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors text-sm"

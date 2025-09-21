@@ -42,7 +42,7 @@ export default function ReturnList() {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/materialsissues/returnlist?page=${page}&limit=10`
+                `api/materialsissues/returnlist?page=${page}&limit=30`
             );
             const returnsData =
                 response?.result || response?.data?.result || [];
@@ -75,7 +75,7 @@ export default function ReturnList() {
                 const response: any = await PostSimple(
                     `api/materialsissues/returnsearch?keyword=${encodeURIComponent(
                         query
-                    )}&page=${page}&limit=10`
+                    )}&page=${page}&limit=30`
                 );
 
                 if (response?.status === 200 || response?.data?.success) {

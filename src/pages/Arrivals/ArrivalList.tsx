@@ -1,21 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
-import ComponentCard from "../../components/common/ComponentCard.tsx";
 import PageMeta from "../../components/common/PageMeta.tsx";
 import { BASE_URL, GetDataSimple, PostSimple } from "../../service/data.ts";
 import Pagination from "../../components/common/Pagination.tsx";
 import { Toaster } from "react-hot-toast";
 import { useSearch } from "../../context/SearchContext";
 import { toast } from "react-hot-toast";
-import { useModal } from "../../hooks/useModal.ts";
 import Loader from "../../components/ui/loader/Loader.tsx";
 import TableArrival from "./TableArrival.tsx";
-import AddArrival from "./AddArrival.tsx";
 import TabNavigation from "../../components/common/TabNavigation.tsx";
 import TableOstatki from "../Warehouse/TableOstatki.tsx";
 import TableExpenses from "../Expenses/TableExpenses.tsx";
 import ArrivalExcelDownloadModal from "../../components/modals/ArrivalExcelDownloadModal.tsx";
-import Button from "../../components/ui/button/Button.tsx";
 
 interface PaymentHistory {
     payment_id: string;
@@ -56,7 +52,6 @@ export default function ArrivalList() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [status, setStatus] = useState(false);
-    const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState("prixod");
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
@@ -89,7 +84,7 @@ export default function ArrivalList() {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/arrival/list?page=${page}&limit=10`
+                `api/arrival/list?page=${page}&limit=30`
             );
             const arrivalsData =
                 response?.result || response?.data?.result || [];
@@ -131,7 +126,7 @@ export default function ArrivalList() {
                     response = await PostSimple(
                         `api/arrival/search?keyword=${encodeURIComponent(
                             query
-                        )}&page=${page}&limit=10`
+                        )}&page=${page}&limit=30`
                     );
                 }
 
@@ -477,58 +472,6 @@ export default function ArrivalList() {
         }
     };
 
-    const getAddButton = () => {
-        if (activeTab === "prixod") {
-            return (
-                <div className="flex gap-3">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsExcelModalOpen(true)}
-                        startIcon={
-                            <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                            </svg>
-                        }
-                    >
-                        Скачать Excel
-                    </Button>
-                    <button
-                        onClick={openModal}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        Добавить приход
-                    </button>
-                </div>
-            );
-        }
-        return null;
-    };
-
     return (
         <>
             <PageMeta title="PH-sklad" description={getPageTitle()} />
@@ -541,21 +484,8 @@ export default function ArrivalList() {
                     onTabChange={setActiveTab}
                 />
 
-                <ComponentCard title={getPageTitle()} desc={getAddButton()}>
-                    {renderTabContent()}
-                </ComponentCard>
+                {renderTabContent()}
             </div>
-
-            {activeTab === "prixod" && (
-                <AddArrival
-                    isOpen={isOpen}
-                    onClose={() => {
-                        closeModal();
-                        changeStatus();
-                    }}
-                    changeStatus={changeStatus}
-                />
-            )}
 
             {/* Arrival Excel Download Modal */}
             <ArrivalExcelDownloadModal

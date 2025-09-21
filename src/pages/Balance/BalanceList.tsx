@@ -36,7 +36,7 @@ export default function BalanceList() {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/balance/list?page=${page}&limit=10`
+                `api/balance/list?page=${page}&limit=30`
             );
             const balancesData =
                 response?.result || response?.data?.result || [];
@@ -69,7 +69,7 @@ export default function BalanceList() {
                 const response: any = await PostSimple(
                     `api/balance/search?keyword=${encodeURIComponent(
                         query
-                    )}&page=${page}&limit=10`
+                    )}&page=${page}&limit=30`
                 );
 
                 if (response?.status === 200 || response?.data?.success) {

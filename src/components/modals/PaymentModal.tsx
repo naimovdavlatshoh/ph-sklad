@@ -32,6 +32,7 @@ interface PaymentModalProps {
     totalPrice: string;
     totalPayments: string;
     arrivalDollarRate: string;
+    cashTypeText: string;
     onPaymentSuccess: () => void;
 }
 
@@ -52,6 +53,7 @@ export default function PaymentModal({
     totalPrice,
     totalPayments,
     arrivalDollarRate,
+    cashTypeText,
     onPaymentSuccess,
 }: PaymentModalProps) {
     const [formData, setFormData] = useState<PaymentData>({
@@ -188,7 +190,7 @@ export default function PaymentModal({
                                 Общая сумма
                             </p>
                             <p className="font-medium text-gray-900 dark:text-white">
-                                {formatAmount(totalPrice)} сум
+                                {formatAmount(totalPrice)} {cashTypeText}
                             </p>
                         </div>
                         <div className="text-center">
@@ -196,7 +198,7 @@ export default function PaymentModal({
                                 Оплачено
                             </p>
                             <p className="font-medium text-green-600 dark:text-green-400">
-                                {formatAmount(totalPayments)} сум
+                                {formatAmount(totalPayments)} {cashTypeText}
                             </p>
                         </div>
                         <div className="text-center">
@@ -210,7 +212,8 @@ export default function PaymentModal({
                                         : "text-green-600 dark:text-green-400"
                                 }`}
                             >
-                                {formatAmount(remainingAmount.toString())} сум
+                                {formatAmount(remainingAmount.toString())}{" "}
+                                {cashTypeText}
                             </p>
                         </div>
                         {/* <div className="text-center">
@@ -250,7 +253,7 @@ export default function PaymentModal({
                                                 {formatAmount(
                                                     payment.payment_amount
                                                 )}{" "}
-                                                сум
+                                                {payment.cash_type_text}
                                             </p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400">
                                                 {payment.payment_method_text} •{" "}

@@ -42,7 +42,7 @@ export default function CategoryList() {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/materials/category/list?page=${page}&limit=10`
+                `api/materials/category/list?page=${page}&limit=30`
             );
             console.log(response);
 
@@ -71,7 +71,7 @@ export default function CategoryList() {
             const response: any = await PostSimple(
                 `api/materials/category/search?keyword=${encodeURIComponent(
                     query
-                )}&page=${page}&limit=10`
+                )}&page=${page}&limit=30`
             );
 
             if (response?.status === 200 || response?.data?.success) {

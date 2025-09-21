@@ -68,7 +68,7 @@ export default function MaterialsIssuesList() {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/materialsissues/list?page=${page}&limit=10&return_filter=${returnFilter}`
+                `api/materialsissues/list?page=${page}&limit=30&return_filter=${returnFilter}`
             );
             const issuesData = response?.result || response?.data?.result || [];
             const totalPagesData =
@@ -127,7 +127,7 @@ export default function MaterialsIssuesList() {
                 const response: any = await PostSimple(
                     `api/materialsissues/search?keyword=${encodeURIComponent(
                         query
-                    )}&page=${page}&limit=10`
+                    )}&page=${page}&limit=30`
                 );
 
                 if (response?.status === 200 || response?.data?.success) {

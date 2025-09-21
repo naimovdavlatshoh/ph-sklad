@@ -43,7 +43,7 @@ export default function WriteOff() {
         try {
             setLoading(true);
             const response = (await GetDataSimple(
-                `api/materials/writeoff/list?page=${page}&limit=10`
+                `api/materials/writeoff/list?page=${page}&limit=30`
             )) as WriteOffResponse;
             setWriteOffs(response?.result || []);
             setTotalPages(response.pages || 1);

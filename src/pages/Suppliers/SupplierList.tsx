@@ -38,7 +38,7 @@ export default function SupplierList() {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/supplier/list?page=${page}&limit=10`
+                `api/supplier/list?page=${page}&limit=30`
             );
             const suppliersData =
                 response?.result || response?.data?.result || [];
@@ -76,7 +76,7 @@ export default function SupplierList() {
                 const response: any = await PostSimple(
                     `api/supplier/search?keyword=${encodeURIComponent(
                         query
-                    )}&page=${page}&limit=10`
+                    )}&page=${page}&limit=30`
                 );
 
                 if (response?.status === 200 || response?.data?.success) {

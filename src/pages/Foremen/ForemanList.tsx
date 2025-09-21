@@ -33,7 +33,7 @@ export default function ForemanList() {
         setLoading(true);
         try {
             const response: any = await GetDataSimple(
-                `api/foreman/list?page=${page}&limit=10`
+                `api/foreman/list?page=${page}&limit=30`
             );
             const foremenData =
                 response?.result || response?.data?.result || [];
@@ -69,7 +69,7 @@ export default function ForemanList() {
                 const response: any = await PostSimple(
                     `api/foreman/search?keyword=${encodeURIComponent(
                         query
-                    )}&page=${page}&limit=10`
+                    )}&page=${page}&limit=30`
                 );
 
                 if (response?.status === 200 || response?.data?.success) {

@@ -198,7 +198,7 @@ export default function ArrivalExcelDownloadModal({
                         variant="primary"
                         onClick={handleDownload}
                         disabled={isLoading || !isFormValid}
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
                     >
                         {isLoading ? "Скачивание..." : "Скачать Excel"}
                     </Button>
