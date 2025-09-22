@@ -501,11 +501,11 @@ const AppSidebar: React.FC = () => {
                 <Link to="/">
                     {isExpanded || isHovered || isMobileOpen ? (
                         <span className="text-2xl font-bold text-brand-500 dark:text-brand-400">
-                            PH-sklad
+                            СКЛАД
                         </span>
                     ) : (
                         <span className="text-xl font-bold text-brand-500 dark:text-brand-400">
-                            T
+                            С
                         </span>
                     )}
                 </Link>
@@ -528,6 +528,19 @@ const AppSidebar: React.FC = () => {
                                 )}
                             </h2>
                             {renderMenuItems(filteredNavItems, "main")}
+                        </div>
+                        <div >
+                            <a
+                                href="https://cbu.uz/"
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Центральный банк Республики Узбекистан"
+                            >
+                                <img
+                                    src="https://cbu.uz/ru/informer/?txtclr=212121&brdclr=FFC700&bgclr=FFE27D&r_choose=USD_EUR_RUB"
+                                    alt=""
+                                />
+                            </a>
                         </div>
                         {/* <div className="">
                             <h2

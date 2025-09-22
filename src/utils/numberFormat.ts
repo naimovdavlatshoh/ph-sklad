@@ -29,7 +29,7 @@ export const formatNumber = (
  * @returns Formatted currency string
  */
 export const formatCurrency = (amount: number | string): string => {
-    return formatNumber(amount, "сум");
+    return formatNumber(amount);
 };
 
 /**

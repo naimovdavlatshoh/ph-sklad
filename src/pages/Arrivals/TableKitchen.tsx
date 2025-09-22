@@ -56,6 +56,7 @@ interface KitchenItem {
     amount: string;
     price: string;
     created_at: string;
+    short_name: string;
 }
 
 interface Kitchen {
@@ -403,18 +404,18 @@ export default function TableKitchen({
                 className="max-w-4xl"
             >
                 <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <div className=" mb-6">
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                             Детали кухни
                         </h3>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-gray-500">
                             {selectedItemsKitchen?.invoice_number && (
                                 <span>
                                     Инвойс:{" "}
                                     {selectedItemsKitchen.invoice_number}
                                 </span>
                             )}
-                        </div>
+                        </span>
                     </div>
 
                     {loadingItems ? (
@@ -471,7 +472,11 @@ export default function TableKitchen({
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                     {parseFloat(item.amount)
                                                         .toLocaleString()
-                                                        .replace(/,/g, " ")}
+                                                        .replace(
+                                                            /,/g,
+                                                            " "
+                                                        )}{" "}
+                                                    {item.short_name}
                                                 </td>
                                                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                     {parseFloat(item.price)

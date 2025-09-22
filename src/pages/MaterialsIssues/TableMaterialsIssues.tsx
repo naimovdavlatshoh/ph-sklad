@@ -322,10 +322,10 @@ export default function TableMaterialsIssues({
                                             <TableCell className="px-5 py-4">
                                                 <div className="flex flex-col gap-1">
                                                     <span className="text-sm">
-                                                        {
+                                                        {formatDateTime(
                                                             issue.items[0]
                                                                 .actual_return_date
-                                                        }
+                                                        )}
                                                     </span>
                                                     {issue.items.some(
                                                         (item) =>

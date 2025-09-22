@@ -21,6 +21,7 @@ interface Arrival {
     user_name: string;
     invoice_number: string;
     total_price: string;
+    cash_type_text: string;
     comments: string;
     created_at: string;
 }
@@ -227,7 +228,9 @@ export function AddPaymentModal({
                                         labelSupplier
                                             ? ` - ${labelSupplier}`
                                             : ""
-                                    }${labelTotal ? ` - ${labelTotal}` : ""}`;
+                                    }${labelTotal ? ` - ${labelTotal}` : ""} ${
+                                        arrival.cash_type_text
+                                    }`;
 
                                     return {
                                         value: parseInt(arrival.arrival_id),
@@ -288,17 +291,38 @@ export function AddPaymentModal({
                             required
                         />
 
-                        {/* Dollar hisobini chiqarish */}
+                        {/* Currency conversion display */}
                         {formData.payment_amount && dollarRate > 0 && (
                             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                В долларах:{" "}
-                                <span className="font-medium text-green-600">
-                                    {(
-                                        parseFloat(formData.payment_amount) /
-                                        dollarRate
-                                    ).toFixed(2)}{" "}
-                                    $
-                                </span>
+                                {formData.cash_type === "0" ? (
+                                    // If Dollar is selected, show Sum equivalent
+                                    <>
+                                        В сумах:{" "}
+                                        <span className="font-medium text-green-600">
+                                            {formatCurrency(
+                                                (
+                                                    parseFloat(
+                                                        formData.payment_amount
+                                                    ) * dollarRate
+                                                ).toString()
+                                            )}{" "}
+                                            сум
+                                        </span>
+                                    </>
+                                ) : (
+                                    // If Sum is selected, show Dollar equivalent
+                                    <>
+                                        В долларах:{" "}
+                                        <span className="font-medium text-green-600">
+                                            {(
+                                                parseFloat(
+                                                    formData.payment_amount
+                                                ) / dollarRate
+                                            ).toFixed(2)}{" "}
+                                            $
+                                        </span>
+                                    </>
+                                )}
                             </p>
                         )}
                     </div>

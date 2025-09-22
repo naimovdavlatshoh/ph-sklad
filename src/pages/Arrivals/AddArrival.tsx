@@ -319,6 +319,11 @@ export default function AddArrival({
 
     const totalSum = calculateTotalSum();
 
+    // Get currency symbol based on selected cash_type
+    const getCurrencySymbol = () => {
+        return formData.cash_type === "0" ? "$" : "сум";
+    };
+
     // Format number with spaces but preserve decimal point
     const formatNumberWithSpaces = (value: string) => {
         if (!value) return "";
@@ -566,7 +571,7 @@ export default function AddArrival({
 
                                         <div>
                                             <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
-                                                Цена (сум)
+                                                Цена ({getCurrencySymbol()})
                                             </label>
                                             <InputField
                                                 type="text"
@@ -624,10 +629,15 @@ export default function AddArrival({
                                                     Общая сумма
                                                 </label>
                                                 <div className="px-3 h-[44px] flex items-center bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-semibold text-gray-900 dark:text-white">
-                                                    {(
-                                                        item.amount * item.price
-                                                    ).toLocaleString()}{" "}
-                                                    сум
+                                                    {formData.cash_type === "0"
+                                                        ? `$${(
+                                                              item.amount *
+                                                              item.price
+                                                          ).toFixed(2)}`
+                                                        : `${(
+                                                              item.amount *
+                                                              item.price
+                                                          ).toLocaleString()} сум`}
                                                 </div>
                                             </div>
                                             {items.length > 1 && (
@@ -670,12 +680,16 @@ export default function AddArrival({
                                         </h4>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">
                                             {items.length} материал(ов) •{" "}
-                                            {totalSum.toLocaleString()} сум
+                                            {formData.cash_type === "0"
+                                                ? `$${totalSum.toFixed(2)}`
+                                                : `${totalSum.toLocaleString()} сум`}
                                         </p>
                                     </div>
                                     <div className="text-right">
                                         <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                            {totalSum.toLocaleString()} сум
+                                            {formData.cash_type === "0"
+                                                ? `$${totalSum.toFixed(2)}`
+                                                : `${totalSum.toLocaleString()} сум`}
                                         </div>
                                     </div>
                                 </div>

@@ -117,6 +117,7 @@ interface ArrivalItem {
     amount: string;
     price: string;
     created_at: string;
+    short_name: string;
 }
 
 interface Arrival {
@@ -578,14 +579,14 @@ export default function TableArrival({
                                                                         .replace(
                                                                             /,/g,
                                                                             " "
-                                                                        )}
-                                                                </span>
-                                                                <span className="text-gray-500 dark:text-gray-400">
-                                                                    {" "}
+                                                                        )}{" "}
                                                                     {
                                                                         arrival.cash_type_text
                                                                     }
                                                                 </span>
+                                                                {/* <span className="text-gray-500 dark:text-gray-400">
+
+                                                                </span> */}
                                                             </>
                                                         ) : parseFloat(
                                                               arrival.total_payments ||
@@ -889,18 +890,18 @@ export default function TableArrival({
                 className="max-w-4xl"
             >
                 <div className="p-6">
-                    <div className="flex items-center justify-between mb-6">
+                    <div className=" mb-6">
                         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                            Детали прихода
+                            Детали прихода{" "}
                         </h3>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <span className="text-gray-500">
                             {selectedItemsArrival?.invoice_number && (
                                 <span>
                                     Инвойс:{" "}
                                     {selectedItemsArrival.invoice_number}
                                 </span>
                             )}
-                        </div>
+                        </span>
                     </div>
 
                     {/* Tab Navigation */}
@@ -986,7 +987,11 @@ export default function TableArrival({
                                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                         {parseFloat(item.amount)
                                                             .toLocaleString()
-                                                            .replace(/,/g, " ")}
+                                                            .replace(
+                                                                /,/g,
+                                                                " "
+                                                            )}{" "}
+                                                        {item.short_name}
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                         {parseFloat(item.price)

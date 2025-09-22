@@ -14,6 +14,7 @@ import { AddPaymentModal } from "./AddPaymentModal";
 import { PaymentTable } from "./PaymentTable";
 import PaymentExcelDownloadModal from "../../components/modals/PaymentExcelDownloadModal";
 import { BASE_URL } from "../../service/data";
+import { formatCurrency } from "../../utils/numberFormat";
 
 export interface Payment {
     invoice_number: string;
@@ -43,6 +44,7 @@ export default function PaymentList() {
     const [searchResults, setSearchResults] = useState<Payment[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [currentbalance, setCurrenbBalance] = useState(0);
     const [paymentToDelete, setPaymentToDelete] = useState<{
         id: string;
         supplierName: string;
@@ -362,9 +364,16 @@ export default function PaymentList() {
         }
     };
 
+    const balance = () => {
+        GetDataSimple(`api/balance/available`).then((res) => {
+            setCurrenbBalance(res.available_balance);
+        });
+    };
+
     useEffect(() => {
         loadPayments(1);
         fetchSuppliers();
+        balance();
     }, []);
 
     useEffect(() => {
@@ -385,7 +394,15 @@ export default function PaymentList() {
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Касса-Склад
                 </h1>
-                <div className="flex gap-3">
+                <div className="flex gap-3 ">
+                    <div className="flex items-center gap-2">
+                        <p>
+                            Баланс :{" "}
+                            <span className="text-green-500 font-medium">
+                                {formatCurrency(currentbalance)} сум
+                            </span>
+                        </p>
+                    </div>
                     <Button
                         type="button"
                         variant="outline"
