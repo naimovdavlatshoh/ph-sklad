@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import InputField from "../form/input/InputField";
 import TextArea from "../form/input/TextArea";
 import Label from "../form/Label";
 import Select from "../form/Select";
-import { PostDataTokenJson } from "../../service/data";
+import { PostDataTokenJson, GetDataSimple } from "../../service/data";
 import toast from "react-hot-toast";
 // import { formatAmount } from "../../utils/numberFormat";
 
@@ -63,10 +63,12 @@ export default function PaymentModal({
         cash_type: 1,
         comments: "",
     });
+    const [paymentAmountString, setPaymentAmountString] = useState<string>("");
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("1");
     const [selectedCashType, setSelectedCashType] = useState("1");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [dollarRate, setDollarRate] = useState<number>(0);
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString("ru-RU", {
@@ -82,7 +84,37 @@ export default function PaymentModal({
         return parseInt(amount).toLocaleString().replace(/,/g, " ");
     };
 
+    // Utility function for formatting numbers with spaces
+    const formatNumberWithSpaces = (value: string) => {
+        if (!value) return "";
+        // Remove any existing spaces
+        const cleanValue = value.replace(/\s/g, "");
+        // Split by decimal point
+        const parts = cleanValue.split(".");
+        // Format integer part with spaces
+        const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        // Return formatted number
+        return parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
+    };
+
     const remainingAmount = parseInt(totalPrice) - parseInt(totalPayments);
+
+    // Dollar kursini yuklash
+    const loadDollarRate = async () => {
+        try {
+            const response = await GetDataSimple("api/payments/dollar");
+            const rate = response.dollar_rate || response?.data?.result || 0;
+            setDollarRate(parseFloat(rate) || 0);
+        } catch (error) {
+            console.error("Error loading dollar rate:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            loadDollarRate();
+        }
+    }, [isOpen]);
 
     const paymentMethodOptions = [
         { value: 1, label: "Наличка" },
@@ -121,6 +153,7 @@ export default function PaymentModal({
             });
             setSelectedPaymentMethod("1");
             setSelectedCashType("1");
+            setPaymentAmountString("");
         } catch (error: any) {
             console.error("Payment creation error:", error.response.data.error);
             setError(error.response.data.error);
@@ -132,6 +165,7 @@ export default function PaymentModal({
     const handleClose = () => {
         if (!isSubmitting) {
             setError(null);
+            setPaymentAmountString("");
             onClose();
         }
     };
@@ -318,22 +352,17 @@ export default function PaymentModal({
                             <InputField
                                 id="payment_amount"
                                 type="text"
-                                value={
-                                    formData.payment_amount === 0
-                                        ? ""
-                                        : formatAmount(
-                                              formData.payment_amount.toString()
-                                          )
-                                }
+                                value={formatNumberWithSpaces(
+                                    paymentAmountString
+                                )}
                                 onChange={(e) => {
                                     setError(null);
-                                    // Remove all non-numeric characters except decimal point
-                                    const numericValue = e.target.value.replace(
-                                        /[^\d.]/g,
+                                    const value = e.target.value.replace(
+                                        /\s/g,
                                         ""
-                                    );
-                                    const parsedValue =
-                                        parseFloat(numericValue) || 0;
+                                    ); // Remove spaces for processing
+                                    setPaymentAmountString(value);
+                                    const parsedValue = parseFloat(value) || 0;
                                     setFormData({
                                         ...formData,
                                         payment_amount: parsedValue,
@@ -342,6 +371,41 @@ export default function PaymentModal({
                                 placeholder="0"
                                 required
                             />
+
+                            {/* Currency conversion display */}
+                            {paymentAmountString && dollarRate > 0 && (
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    {formData.cash_type === 0 ? (
+                                        // If Dollar is selected, show Sum equivalent
+                                        <>
+                                            В сумах:{" "}
+                                            <span className="font-medium text-green-600">
+                                                {formatAmount(
+                                                    (
+                                                        parseFloat(
+                                                            paymentAmountString
+                                                        ) * dollarRate
+                                                    ).toString()
+                                                )}{" "}
+                                                сум
+                                            </span>
+                                        </>
+                                    ) : (
+                                        // If Sum is selected, show Dollar equivalent
+                                        <>
+                                            В долларах:{" "}
+                                            <span className="font-medium text-green-600">
+                                                {(
+                                                    parseFloat(
+                                                        paymentAmountString
+                                                    ) / dollarRate
+                                                ).toFixed(2)}{" "}
+                                                $
+                                            </span>
+                                        </>
+                                    )}
+                                </p>
+                            )}
                         </div>
 
                         <div>

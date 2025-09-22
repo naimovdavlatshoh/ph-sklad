@@ -6,8 +6,8 @@ import { formatAmount } from "../../utils/numberFormat";
 import InputField from "../../components/form/input/InputField";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
-import DatePicker from "../../components/form/date-picker";
 import Label from "../../components/form/Label";
+import DatePickerCustom from "../../components/form/date-picker-custom";
 
 interface Foreman {
     foreman_id: number;
@@ -482,7 +482,7 @@ export default function CreateMaterialIssuance({
 
                             {formData.return_type === 1 && (
                                 <div>
-                                    <DatePicker
+                                    <DatePickerCustom
                                         id="expected-return-date"
                                         label="Ожидаемая дата возврата *"
                                         placeholder="Выберите дату"
