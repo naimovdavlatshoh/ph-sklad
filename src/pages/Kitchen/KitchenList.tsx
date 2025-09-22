@@ -35,6 +35,7 @@ interface KitchenItem {
     amount: string;
     price: string;
     created_at: string;
+    short_name: string;
 }
 
 export default function KitchenList() {
