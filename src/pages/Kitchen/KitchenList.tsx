@@ -22,6 +22,7 @@ interface Kitchen {
     supplier_name: string;
     total_price: string;
     delivery_price: string;
+    number_of_people: string;
     comments: string;
     created_at: string;
     items?: KitchenItem[];
