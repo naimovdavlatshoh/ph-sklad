@@ -67,7 +67,6 @@ interface Kitchen {
     supplier_name: string;
     total_price: string;
     delivery_price: string;
-    number_of_people: string;
     comments: string;
     created_at: string;
     items?: KitchenItem[];
@@ -201,9 +200,6 @@ export default function TableKitchen({
                                 <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                     Цена доставки
                                 </th>
-                                <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                                    Количество людей
-                                </th>
                                 <th className="px-5 py-3 font-medium text-gray-500 text-center text-theme-xs dark:text-gray-400">
                                     Комментарии
                                 </th>
@@ -220,7 +216,7 @@ export default function TableKitchen({
                                 <tr>
                                     <td
                                         className="text-center py-8 text-gray-500 dark:text-gray-400"
-                                        colSpan={9}
+                                        colSpan={8}
                                     >
                                         Кухня не найдена
                                     </td>
@@ -273,12 +269,6 @@ export default function TableKitchen({
                                                       .replace(/,/g, " ") +
                                                   " сум"
                                                 : "—"}
-                                        </td>
-                                        <td className="px-5 py-4 text-sm text-black dark:text-white">
-                                            <div className="font-medium text-blue-600 dark:text-blue-400">
-                                                {kitchen.number_of_people ||
-                                                    "—"}
-                                            </div>
                                         </td>
                                         <td className="px-5 py-4 text-sm text-center">
                                             {kitchen.comments &&

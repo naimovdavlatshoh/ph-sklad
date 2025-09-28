@@ -34,6 +34,7 @@ export default function AddExpenseModal({
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(false);
+    const [searchingCategories, setSearchingCategories] = useState(false);
 
     // Fetch categories when modal opens
     useEffect(() => {
@@ -56,6 +57,40 @@ export default function AddExpenseModal({
             toast.error("Ошибка при загрузке категорий");
         } finally {
             setLoadingCategories(false);
+        }
+    };
+
+    const handleCategorySearch = async (keyword: string) => {
+        if (!keyword.trim()) {
+            fetchCategories();
+            return;
+        }
+
+        // Only search if keyword has at least 3 characters
+        if (keyword.trim().length < 3) {
+            return;
+        }
+
+        setSearchingCategories(true);
+        try {
+            const response: any = await PostSimple(
+                `api/kitchen/categorysearch?keyword=${encodeURIComponent(
+                    keyword
+                )}`
+            );
+
+            if (response?.status === 200 || response?.data?.success) {
+                const searchResults =
+                    response?.data?.result || response?.result || [];
+                setCategories(searchResults);
+            } else {
+                fetchCategories();
+            }
+        } catch (error) {
+            console.error("Category search error:", error);
+            fetchCategories();
+        } finally {
+            setSearchingCategories(false);
         }
     };
 
@@ -157,10 +192,15 @@ export default function AddExpenseModal({
                                 })
                             }
                             defaultValue={formData.category_id}
+                            searchable={true}
+                            onSearch={handleCategorySearch}
+                            searching={searchingCategories}
                         />
-                        {loadingCategories && (
+                        {(loadingCategories || searchingCategories) && (
                             <p className="text-xs text-gray-500 mt-1">
-                                Загрузка категорий...
+                                {searchingCategories
+                                    ? "Поиск категорий..."
+                                    : "Загрузка категорий..."}
                             </p>
                         )}
                     </div>

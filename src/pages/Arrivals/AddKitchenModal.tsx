@@ -39,7 +39,6 @@ export default function AddKitchenModal({
         comments: "",
         invoice_number: "",
         delivery_price: "",
-        number_of_people: "",
     });
     const [items, setItems] = useState<KitchenItem[]>([
         { material_id: 0, amount: 0, price: 0 },
@@ -215,14 +214,6 @@ export default function AddKitchenModal({
             return;
         }
 
-        if (
-            !formData.number_of_people ||
-            parseInt(formData.number_of_people) <= 0
-        ) {
-            toast.error("Пожалуйста, введите корректное количество людей");
-            return;
-        }
-
         // Check if items array is empty or has invalid items
         if (items.length === 0) {
             toast.error("Пожалуйста, добавьте хотя бы один материал");
@@ -262,7 +253,6 @@ export default function AddKitchenModal({
                 comments: formData.comments,
                 invoice_number: formData.invoice_number,
                 delivery_price: parseFloat(formData.delivery_price),
-                number_of_people: parseInt(formData.number_of_people),
                 items: validItems.map((item) => ({
                     material_id: item.material_id,
                     amount: item.amount,
@@ -307,7 +297,6 @@ export default function AddKitchenModal({
             comments: "",
             invoice_number: "",
             delivery_price: "",
-            number_of_people: "",
         });
         setItems([{ material_id: 0, amount: 0, price: 0 }]);
         setItemInputs([{ amount: "", price: "" }]);
@@ -403,7 +392,7 @@ export default function AddKitchenModal({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                         <div className="space-y-3">
                             <label className="block text-sm font-normal text-gray-800 dark:text-gray-200 mb-1">
                                 <span className="text-red-500 mr-1">*</span>
@@ -426,22 +415,6 @@ export default function AddKitchenModal({
                                     }));
                                 }}
                                 placeholder="Введите цену доставки"
-                                className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
-                            />
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="block text-sm font-normal text-gray-800 dark:text-gray-200 mb-1">
-                                <span className="text-red-500 mr-1">*</span>
-                                Укажите количество людей
-                            </label>
-                            <InputField
-                                type="number"
-                                name="number_of_people"
-                                value={formData.number_of_people}
-                                onChange={handleInputChange}
-                                placeholder="Введите количество людей"
-                                min="1"
                                 className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
                             />
                         </div>
