@@ -366,8 +366,24 @@ export default function TableArrival({
     };
 
     const handleFiltersChange = (filters: any) => {
+        console.log("Filters changed:", filters);
         setExcelFilters(filters);
-        setTotalCount(arrivals.length); // Set total count based on current arrivals
+        // Only call API if both dates are present
+        if (
+            filters.start_date &&
+            filters.end_date &&
+            filters.start_date.trim() !== "" &&
+            filters.end_date.trim() !== ""
+        ) {
+            console.log(
+                "Both dates present, calling getTotalCount with new filters"
+            );
+            // Call getTotalCount with the new filters directly
+            getTotalCountWithFilters(filters);
+        } else {
+            console.log("Missing dates, not calling API");
+            setTotalCount(0);
+        }
     };
 
     const handleSupplierSearch = async (query: string) => {
@@ -401,15 +417,72 @@ export default function TableArrival({
         }
     };
 
+    const getTotalCountWithFilters = async (filters: any) => {
+        // Double check that both dates are present
+        if (
+            !filters.start_date ||
+            !filters.end_date ||
+            filters.start_date.trim() === "" ||
+            filters.end_date.trim() === ""
+        ) {
+            console.log(
+                "Missing dates in getTotalCountWithFilters, skipping API call"
+            );
+            setTotalCount(0);
+            return;
+        }
+
+        try {
+            const formattedStartDate = formatDateToDDMMYYYY(filters.start_date);
+            const formattedEndDate = formatDateToDDMMYYYY(filters.end_date);
+
+            console.log("Getting total count with dates:", {
+                start_date: filters.start_date,
+                end_date: filters.end_date,
+                formattedStartDate,
+                formattedEndDate,
+            });
+
+            const params = new URLSearchParams({
+                start_date: formattedStartDate,
+                end_date: formattedEndDate,
+                count: "1",
+            });
+
+            if (filters.supplier_id) {
+                params.append("supplier_id", filters.supplier_id);
+            }
+
+            const response = await fetch(
+                `${BASE_URL}api/excel/arrival?${params.toString()}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: localStorage.getItem("token")
+                            ? `Bearer ${localStorage.getItem("token")}`
+                            : "",
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setTotalCount(data.total_count || 0);
+            }
+        } catch (error) {
+            console.error("Error getting total count:", error);
+            setTotalCount(0);
+        }
+    };
+
     // Fetch suppliers on component mount
     useEffect(() => {
         fetchSuppliers();
     }, []);
 
-    // Set total count when arrivals change
-    useEffect(() => {
-        setTotalCount(arrivals.length);
-    }, [arrivals]);
+    // Note: totalCount is now set by API calls in getTotalCountWithFilters
+    // instead of being based on arrivals.length
 
     return (
         <>
