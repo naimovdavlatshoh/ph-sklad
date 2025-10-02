@@ -177,13 +177,21 @@ export default function PaymentExcelDownloadModal({
                     </div>
 
                     {/* Total Count Display */}
-                    {totalCount > 0 && (
+                    {totalCount > 0 ? (
                         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                             <p className="text-sm text-blue-700 dark:text-blue-300">
                                 Найдено записей: <strong>{totalCount}</strong>
                             </p>
                         </div>
-                    )}
+                    ) : totalCount === 0 &&
+                      filters.start_date &&
+                      filters.end_date ? (
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                            <p className="text-sm text-red-700 dark:text-red-300">
+                                Результат не найден
+                            </p>
+                        </div>
+                    ) : null}
                 </div>
 
                 <div className="flex justify-end space-x-3 mt-6">
@@ -199,7 +207,8 @@ export default function PaymentExcelDownloadModal({
                         disabled={
                             isLoading ||
                             !filters.start_date ||
-                            !filters.end_date
+                            !filters.end_date ||
+                            totalCount === 0
                         }
                     >
                         {isLoading ? "Скачивание..." : "Скачать Excel"}

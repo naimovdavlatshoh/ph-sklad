@@ -52,7 +52,7 @@ export default function PaymentModal({
     paymentHistory,
     totalPrice,
     totalPayments,
-    arrivalDollarRate,
+
     cashTypeText,
     onPaymentSuccess,
 }: PaymentModalProps) {
@@ -208,7 +208,7 @@ export default function PaymentModal({
                         </p>
                         <p className="text-sm text-blue-700 dark:text-blue-300">
                             <span className="font-medium">Курс доллара:</span>{" "}
-                            {formatAmount(arrivalDollarRate)} сум
+                            {formatAmount(dollarRate.toString())} сум
                         </p>
                     </div>
                 </div>

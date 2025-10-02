@@ -64,6 +64,9 @@ export default function ArrivalList() {
         supplier_id: "",
     });
     const [totalCount, setTotalCount] = useState(0);
+    const [selectedSupplierId, setSelectedSupplierId] = useState("");
+    const [isSearchingSuppliersFilter, setIsSearchingSuppliersFilter] =
+        useState(false);
 
     const tabs = [
         {
@@ -83,9 +86,12 @@ export default function ArrivalList() {
     const fetchArrivals = useCallback(async () => {
         setLoading(true);
         try {
-            const response: any = await GetDataSimple(
-                `api/arrival/list?page=${page}&limit=30`
-            );
+            let url = `api/arrival/list?page=${page}&limit=30`;
+            if (selectedSupplierId) {
+                url += `&supplier_id=${selectedSupplierId}`;
+            }
+
+            const response: any = await GetDataSimple(url);
             const arrivalsData =
                 response?.result || response?.data?.result || [];
             const totalPagesData =
@@ -98,7 +104,7 @@ export default function ArrivalList() {
             console.error("Error fetching arrivals:", error);
             toast.error("Что-то пошло не так при загрузке приходов");
         }
-    }, [page]);
+    }, [page, selectedSupplierId]);
 
     const performSearch = useCallback(
         async (query: string) => {
@@ -215,6 +221,58 @@ export default function ArrivalList() {
         } finally {
             setIsSearchingSuppliers(false);
         }
+    };
+
+    // Search suppliers for filter dropdown
+    const handleSupplierSearchFilter = async (query: string) => {
+        if (!query.trim()) {
+            fetchSuppliers();
+            return;
+        }
+
+        // Only search if query has at least 3 characters
+        if (query.trim().length < 3) {
+            return;
+        }
+
+        try {
+            setIsSearchingSuppliersFilter(true);
+            const response = await fetch(
+                `${BASE_URL}api/supplier/search?keyword=${encodeURIComponent(
+                    query
+                )}`,
+                {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: localStorage.getItem("token")
+                            ? `Bearer ${localStorage.getItem("token")}`
+                            : "",
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setSuppliers(data.result || data.data || []);
+            }
+        } catch (error) {
+            console.error("Error searching suppliers:", error);
+        } finally {
+            setIsSearchingSuppliersFilter(false);
+        }
+    };
+
+    // Handle supplier filter change
+    const handleSupplierFilterChange = (supplierId: string) => {
+        setSelectedSupplierId(supplierId);
+        setPage(1); // Reset to first page when filter changes
+    };
+
+    // Clear supplier filter
+    const clearSupplierFilter = () => {
+        setSelectedSupplierId("");
+        setPage(1);
     };
 
     const formatDateToDDMMYYYY = (dateString: string) => {
@@ -438,6 +496,12 @@ export default function ArrivalList() {
                         <TableArrival
                             arrivals={filteredArrivals}
                             changeStatus={changeStatus}
+                            suppliers={suppliers}
+                            selectedSupplierId={selectedSupplierId}
+                            onSupplierFilterChange={handleSupplierFilterChange}
+                            onClearSupplierFilter={clearSupplierFilter}
+                            onSupplierSearch={handleSupplierSearchFilter}
+                            isSearchingSuppliers={isSearchingSuppliersFilter}
                         />
                         <Pagination
                             currentPage={page}

@@ -4,9 +4,7 @@ import { handleAuthError } from "../utils/authUtils";
 axios.interceptors.response.use(
     (response) => response,
     (error) => {
-
         if (handleAuthError(error)) {
-
             return Promise.resolve({ data: { handled: true } });
         }
         return Promise.reject(error);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Button from "../../components/ui/button/Button.tsx";
 import { toast } from "react-hot-toast";
 import { DeleteData } from "../../service/data.ts";
@@ -10,6 +10,8 @@ import { BASE_URL } from "../../service/data.ts";
 import ComponentCard from "../../components/common/ComponentCard.tsx";
 import AddArrival from "./AddArrival.tsx";
 import ArrivalExcelDownloadModal from "../../components/modals/ArrivalExcelDownloadModal.tsx";
+import Select from "../../components/form/Select.tsx";
+import { IoMdCloseCircle } from "react-icons/io";
 
 // Comment icon SVG
 const CommentIcon = ({ className }: { className?: string }) => (
@@ -143,11 +145,23 @@ interface Arrival {
 interface TableArrivalProps {
     arrivals: Arrival[];
     changeStatus: () => void;
+    suppliers: any[];
+    selectedSupplierId: string;
+    onSupplierFilterChange: (supplierId: string) => void;
+    onClearSupplierFilter: () => void;
+    onSupplierSearch: (query: string) => void;
+    isSearchingSuppliers: boolean;
 }
 
 export default function TableArrival({
     arrivals,
     changeStatus,
+    suppliers,
+    selectedSupplierId,
+    onSupplierFilterChange,
+    onClearSupplierFilter,
+    onSupplierSearch,
+    isSearchingSuppliers,
 }: TableArrivalProps) {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [selectedArrival, setSelectedArrival] = useState<Arrival | null>(
@@ -166,8 +180,6 @@ export default function TableArrival({
     const [addArrivalModalOpen, setAddArrivalModalOpen] = useState(false);
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    const [suppliers, setSuppliers] = useState<any[]>([]);
-    const [isSearchingSuppliers, setIsSearchingSuppliers] = useState(false);
     const [totalCount, setTotalCount] = useState(0);
     const [excelFilters, setExcelFilters] = useState({
         start_date: "",
@@ -283,21 +295,6 @@ export default function TableArrival({
     };
 
     // Excel download functions
-    const fetchSuppliers = async () => {
-        try {
-            const response = await fetch(`${BASE_URL}api/supplier/list`, {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    "Content-Type": "application/json",
-                },
-            });
-            const data = await response.json();
-            setSuppliers(data?.result || data?.data?.result || []);
-        } catch (error) {
-            console.error("Error fetching suppliers:", error);
-        }
-    };
 
     const handleExcelDownload = async () => {
         // Check that both dates are present before downloading
@@ -386,37 +383,6 @@ export default function TableArrival({
         }
     };
 
-    const handleSupplierSearch = async (query: string) => {
-        if (query.length < 3) {
-            fetchSuppliers();
-            return;
-        }
-
-        setIsSearchingSuppliers(true);
-        try {
-            const response = await fetch(
-                `${BASE_URL}api/supplier/search?keyword=${encodeURIComponent(
-                    query
-                )}`,
-                {
-                    method: "GET",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem(
-                            "token"
-                        )}`,
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-            const data = await response.json();
-            setSuppliers(data?.result || data?.data?.result || []);
-        } catch (error) {
-            console.error("Supplier search error:", error);
-        } finally {
-            setIsSearchingSuppliers(false);
-        }
-    };
-
     const getTotalCountWithFilters = async (filters: any) => {
         // Double check that both dates are present
         if (
@@ -476,11 +442,6 @@ export default function TableArrival({
         }
     };
 
-    // Fetch suppliers on component mount
-    useEffect(() => {
-        fetchSuppliers();
-    }, []);
-
     // Note: totalCount is now set by API calls in getTotalCountWithFilters
     // instead of being based on arrivals.length
 
@@ -489,15 +450,70 @@ export default function TableArrival({
             <ComponentCard
                 title="Склад"
                 desc={
-                    <div className="flex gap-3">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsExcelModalOpen(true)}
-                            startIcon={
+                    <div className="flex gap-3 items-center">
+                        {/* Supplier Filter */}
+                        <div className="flex items-center gap-2">
+                            <div className="min-w-[200px]">
+                                <Select
+                                    options={[
+                                        { value: 0, label: "Все поставщики" },
+                                        ...suppliers.map((supplier) => ({
+                                            value: parseInt(
+                                                supplier.supplier_id
+                                            ),
+                                            label: supplier.supplier_name,
+                                        })),
+                                    ]}
+                                    placeholder="Выберите поставщика"
+                                    onChange={(value) =>
+                                        onSupplierFilterChange(value)
+                                    }
+                                    onSearch={onSupplierSearch}
+                                    searching={isSearchingSuppliers}
+                                    searchable={true}
+                                    defaultValue={selectedSupplierId}
+                                />
+                            </div>
+                            {selectedSupplierId && (
+                                <button
+                                    onClick={onClearSupplierFilter}
+                                    className="text-red-600 hover:text-red-800 bg-red-100 p-3 rounded-md text-sm font-medium"
+                                >
+                                    <IoMdCloseCircle size={20} />
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsExcelModalOpen(true)}
+                                startIcon={
+                                    <svg
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        />
+                                    </svg>
+                                }
+                            >
+                                Скачать Excel
+                            </Button>
+                            <button
+                                onClick={() => setAddArrivalModalOpen(true)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                            >
                                 <svg
-                                    className="w-4 h-4"
+                                    className="w-5 h-5"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -506,32 +522,12 @@ export default function TableArrival({
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                         strokeWidth={2}
-                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                                     />
                                 </svg>
-                            }
-                        >
-                            Скачать Excel
-                        </Button>
-                        <button
-                            onClick={() => setAddArrivalModalOpen(true)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                        >
-                            <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                />
-                            </svg>
-                            Добавить приход
-                        </button>
+                                Добавить приход
+                            </button>
+                        </div>
                     </div>
                 }
             >
@@ -1247,7 +1243,7 @@ export default function TableArrival({
                 suppliers={suppliers}
                 onFiltersChange={handleFiltersChange}
                 totalCount={totalCount}
-                onSupplierSearch={handleSupplierSearch}
+                onSupplierSearch={onSupplierSearch}
                 isSearchingSuppliers={isSearchingSuppliers}
             />
         </>

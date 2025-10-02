@@ -345,60 +345,7 @@ export default function AddArrival({
                 </h3>
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="space-y-3">
-                            <Label htmlFor="supplier-select">
-                                <span className="text-red-500 mr-1">*</span>
-                                Поставщик
-                            </Label>
-                            <Select
-                                options={suppliers.map((supplier) => ({
-                                    value: supplier.supplier_id,
-                                    label: supplier.supplier_name,
-                                }))}
-                                placeholder="Выберите поставщика"
-                                onChange={(value) =>
-                                    handleSelectChange("supplier_id", value)
-                                }
-                                defaultValue={formData.supplier_id}
-                                className="relative"
-                                style={{ zIndex: 9999 }}
-                                searchable={true}
-                                onSearch={handleSupplierSearch}
-                                searching={searchingSuppliers}
-                            />
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="block text-sm font-normal text-gray-800 dark:text-gray-200 mb-1">
-                                Инвойс номер
-                            </label>
-                            <InputField
-                                type="text"
-                                name="invoice_number"
-                                value={formData.invoice_number}
-                                onChange={handleInputChange}
-                                placeholder="Введите инвойс номер"
-                                className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
-                            />
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="block text-sm font-normal text-gray-800 dark:text-gray-200 mb-1">
-                                Комментарии
-                            </label>
-                            <InputField
-                                type="text"
-                                name="comments"
-                                value={formData.comments}
-                                onChange={handleInputChange}
-                                placeholder="Введите комментарии (не обязательно)"
-                                className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div className="space-y-3">
                             <Label htmlFor="cash-type-select">
                                 <span className="text-red-500 mr-1">*</span>
@@ -442,6 +389,56 @@ export default function AddArrival({
                                 }}
                                 placeholder="Введите цену доставки"
                                 className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
+                            />
+                        </div>
+                        <div className="space-y-3 col-span-2">
+                            <label className="block text-sm font-normal text-gray-800 dark:text-gray-200 mb-1">
+                                Комментарии
+                            </label>
+                            <InputField
+                                type="text"
+                                name="comments"
+                                value={formData.comments}
+                                onChange={handleInputChange}
+                                placeholder="Введите комментарии (не обязательно)"
+                                className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
+                            />
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-3">
+                            <label className="block text-sm font-normal text-gray-800 dark:text-gray-200 mb-1">
+                                Инвойс номер
+                            </label>
+                            <InputField
+                                type="text"
+                                name="invoice_number"
+                                value={formData.invoice_number}
+                                onChange={handleInputChange}
+                                placeholder="Введите инвойс номер"
+                                className="w-full px-4 py-4 h-[46px] bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hover:border-gray-300 dark:hover:border-gray-500"
+                            />
+                        </div>
+                        <div className="space-y-3 col-span-2">
+                            <Label htmlFor="supplier-select">
+                                <span className="text-red-500 mr-1">*</span>
+                                Поставщик
+                            </Label>
+                            <Select
+                                options={suppliers.map((supplier) => ({
+                                    value: supplier.supplier_id,
+                                    label: supplier.supplier_name,
+                                }))}
+                                placeholder="Выберите поставщика"
+                                onChange={(value) =>
+                                    handleSelectChange("supplier_id", value)
+                                }
+                                defaultValue={formData.supplier_id}
+                                className="relative"
+                                style={{ zIndex: 9999 }}
+                                searchable={true}
+                                onSearch={handleSupplierSearch}
+                                searching={searchingSuppliers}
                             />
                         </div>
                     </div>

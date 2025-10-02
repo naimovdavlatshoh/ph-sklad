@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearch } from "../../context/SearchContext";
 import {
-    GetPaymentsList,
     SearchPayments,
     DeletePayment,
     GetDataSimple,
@@ -15,6 +14,8 @@ import { PaymentTable } from "./PaymentTable";
 import PaymentExcelDownloadModal from "../../components/modals/PaymentExcelDownloadModal";
 import { BASE_URL } from "../../service/data";
 import { formatCurrency } from "../../utils/numberFormat";
+import Select from "../../components/form/Select.tsx";
+import { IoMdCloseCircle } from "react-icons/io";
 
 export interface Payment {
     invoice_number: string;
@@ -64,6 +65,9 @@ export default function PaymentList() {
         supplier_id: "",
     });
     const [totalCount, setTotalCount] = useState(0);
+    const [selectedSupplierId, setSelectedSupplierId] = useState("");
+    const [isSearchingSuppliersFilter, setIsSearchingSuppliersFilter] =
+        useState(false);
 
     const { searchQuery } = useSearch();
 
@@ -121,6 +125,58 @@ export default function PaymentList() {
         }
     };
 
+    // Search suppliers for filter dropdown
+    const handleSupplierSearchFilter = async (query: string) => {
+        if (!query.trim()) {
+            fetchSuppliers();
+            return;
+        }
+
+        // Only search if query has at least 3 characters
+        if (query.trim().length < 3) {
+            return;
+        }
+
+        try {
+            setIsSearchingSuppliersFilter(true);
+            const response = await fetch(
+                `${BASE_URL}api/supplier/search?keyword=${encodeURIComponent(
+                    query
+                )}`,
+                {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: localStorage.getItem("token")
+                            ? `Bearer ${localStorage.getItem("token")}`
+                            : "",
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setSuppliers(data.result || data.data || []);
+            }
+        } catch (error) {
+            console.error("Error searching suppliers:", error);
+        } finally {
+            setIsSearchingSuppliersFilter(false);
+        }
+    };
+
+    // Handle supplier filter change
+    const handleSupplierFilterChange = (supplierId: string) => {
+        setSelectedSupplierId(supplierId);
+        setCurrentPage(1); // Reset to first page when filter changes
+    };
+
+    // Clear supplier filter
+    const clearSupplierFilter = () => {
+        setSelectedSupplierId("");
+        setCurrentPage(1);
+    };
+
     // Format date from YYYY-MM-DD to dd-mm-yyyy
     const formatDateToDDMMYYYY = (dateString: string) => {
         const date = new Date(dateString);
@@ -133,7 +189,12 @@ export default function PaymentList() {
     const loadPayments = async (page: number = 1) => {
         try {
             setLoading(true);
-            const response = await GetPaymentsList(page, 30);
+            let url = `api/payments/list?page=${page}&limit=30`;
+            if (selectedSupplierId) {
+                url += `&supplier_id=${selectedSupplierId}`;
+            }
+
+            const response = await GetDataSimple(url);
             setPayments(response?.result || []);
             setTotalPages(response.pages || 1);
             setCurrentPage(page);
@@ -152,10 +213,17 @@ export default function PaymentList() {
             return;
         }
 
+        // 3 tadan kam harf yozilsa, zapros ketmasin
+        if (query.trim().length < 3) {
+            setIsSearching(false);
+            setSearchResults([]);
+            return;
+        }
+
         try {
             setIsSearching(true);
             const response = await SearchPayments(query);
-            setSearchResults(response.data || []);
+            setSearchResults(response.result || []);
         } catch (error) {
             toast.error("Ошибка при поиске платежей");
         }
@@ -374,7 +442,7 @@ export default function PaymentList() {
         loadPayments(1);
         fetchSuppliers();
         balance();
-    }, []);
+    }, [selectedSupplierId]);
 
     useEffect(() => {
         if (searchQuery) {
@@ -394,7 +462,7 @@ export default function PaymentList() {
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Касса-Склад
                 </h1>
-                <div className="flex gap-3 ">
+                <div className="flex gap-3 items-center">
                     <div className="flex items-center gap-2">
                         <p>
                             Баланс :{" "}
@@ -403,6 +471,38 @@ export default function PaymentList() {
                             </span>
                         </p>
                     </div>
+
+                    {/* Supplier Filter */}
+                    <div className="flex items-center gap-2">
+                        <div className="min-w-[200px]">
+                            <Select
+                                options={[
+                                    { value: 0, label: "Все поставщики" },
+                                    ...suppliers.map((supplier) => ({
+                                        value: parseInt(supplier.supplier_id),
+                                        label: supplier.supplier_name,
+                                    })),
+                                ]}
+                                placeholder="Выберите поставщика"
+                                onChange={(value) =>
+                                    handleSupplierFilterChange(value)
+                                }
+                                onSearch={handleSupplierSearchFilter}
+                                searching={isSearchingSuppliersFilter}
+                                searchable={true}
+                                defaultValue={selectedSupplierId}
+                            />
+                        </div>
+                        {selectedSupplierId && (
+                            <button
+                                onClick={clearSupplierFilter}
+                                className="text-red-600 hover:text-red-800 bg-red-100 p-3 rounded-md text-sm font-medium"
+                            >
+                                <IoMdCloseCircle size={20} />
+                            </button>
+                        )}
+                    </div>
+
                     <Button
                         type="button"
                         variant="outline"

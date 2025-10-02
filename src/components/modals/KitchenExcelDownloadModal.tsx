@@ -169,7 +169,7 @@ export default function KitchenExcelDownloadModal({
                         />
                     </div>
 
-                    {totalCount > 0 && (
+                    {totalCount > 0 ? (
                         <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                             <p className="text-sm text-blue-800 dark:text-blue-200">
                                 Найдено записей:{" "}
@@ -181,7 +181,15 @@ export default function KitchenExcelDownloadModal({
                                 Теперь выберите поставщика для скачивания
                             </p>
                         </div>
-                    )}
+                    ) : totalCount === 0 &&
+                      filters.start_date &&
+                      filters.end_date ? (
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                            <p className="text-sm text-red-700 dark:text-red-300">
+                                Результат не найден
+                            </p>
+                        </div>
+                    ) : null}
                 </div>
 
                 <div className="flex justify-center space-x-3 mt-6">
