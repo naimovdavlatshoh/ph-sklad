@@ -39,7 +39,10 @@ export default function ClientList() {
 
     return (
         <>
-            <PageMeta title="BNM Tizim" description="User list with pagination" />
+            <PageMeta
+                title="PH-sklad"
+                description="User list with pagination"
+            />
             <PageBreadcrumb pageTitle="Пользователи" />
             <div className="space-y-6">
                 <ComponentCard
