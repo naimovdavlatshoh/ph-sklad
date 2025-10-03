@@ -67,6 +67,8 @@ export default function ArrivalList() {
     const [selectedSupplierId, setSelectedSupplierId] = useState("");
     const [isSearchingSuppliersFilter, setIsSearchingSuppliersFilter] =
         useState(false);
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
 
     const tabs = [
         {
@@ -90,6 +92,12 @@ export default function ArrivalList() {
             if (selectedSupplierId) {
                 url += `&supplier_id=${selectedSupplierId}`;
             }
+            if (startDate) {
+                url += `&start_date=${startDate}`;
+            }
+            if (endDate) {
+                url += `&end_date=${endDate}`;
+            }
 
             const response: any = await GetDataSimple(url);
             const arrivalsData =
@@ -104,7 +112,7 @@ export default function ArrivalList() {
             console.error("Error fetching arrivals:", error);
             toast.error("Что-то пошло не так при загрузке приходов");
         }
-    }, [page, selectedSupplierId]);
+    }, [page, selectedSupplierId, startDate, endDate]);
 
     const performSearch = useCallback(
         async (query: string) => {
@@ -272,6 +280,20 @@ export default function ArrivalList() {
     // Clear supplier filter
     const clearSupplierFilter = () => {
         setSelectedSupplierId("");
+        setPage(1);
+    };
+
+    // Handle date filter change
+    const handleDateFilterChange = (start: string, end: string) => {
+        setStartDate(start);
+        setEndDate(end);
+        setPage(1); // Reset to first page when filter changes
+    };
+
+    // Clear date filter
+    const clearDateFilter = () => {
+        setStartDate("");
+        setEndDate("");
         setPage(1);
     };
 
@@ -502,6 +524,10 @@ export default function ArrivalList() {
                             onClearSupplierFilter={clearSupplierFilter}
                             onSupplierSearch={handleSupplierSearchFilter}
                             isSearchingSuppliers={isSearchingSuppliersFilter}
+                            startDate={startDate}
+                            endDate={endDate}
+                            onDateFilterChange={handleDateFilterChange}
+                            onClearDateFilter={clearDateFilter}
                         />
                         <Pagination
                             currentPage={page}

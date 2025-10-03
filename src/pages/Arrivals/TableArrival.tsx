@@ -11,6 +11,7 @@ import ComponentCard from "../../components/common/ComponentCard.tsx";
 import AddArrival from "./AddArrival.tsx";
 import ArrivalExcelDownloadModal from "../../components/modals/ArrivalExcelDownloadModal.tsx";
 import Select from "../../components/form/Select.tsx";
+import DatePicker from "../../components/form/date-picker";
 import { IoMdCloseCircle } from "react-icons/io";
 
 // Comment icon SVG
@@ -151,6 +152,10 @@ interface TableArrivalProps {
     onClearSupplierFilter: () => void;
     onSupplierSearch: (query: string) => void;
     isSearchingSuppliers: boolean;
+    startDate: string;
+    endDate: string;
+    onDateFilterChange: (start: string, end: string) => void;
+    onClearDateFilter: () => void;
 }
 
 export default function TableArrival({
@@ -162,6 +167,10 @@ export default function TableArrival({
     onClearSupplierFilter,
     onSupplierSearch,
     isSearchingSuppliers,
+    startDate,
+    endDate,
+    onDateFilterChange,
+    onClearDateFilter,
 }: TableArrivalProps) {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [selectedArrival, setSelectedArrival] = useState<Arrival | null>(
@@ -474,15 +483,55 @@ export default function TableArrival({
                                     defaultValue={selectedSupplierId}
                                 />
                             </div>
-                            {selectedSupplierId && (
-                                <button
-                                    onClick={onClearSupplierFilter}
-                                    className="text-red-600 hover:text-red-800 bg-red-100 p-3 rounded-md text-sm font-medium"
-                                >
-                                    <IoMdCloseCircle size={20} />
-                                </button>
-                            )}
                         </div>
+
+                        {/* Date Filter */}
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
+                                <DatePicker
+                                    id="start-date-filter"
+                                    defaultDate={startDate || undefined}
+                                    onChange={(_selectedDates, dateStr) => {
+                                        if (dateStr) {
+                                            onDateFilterChange(
+                                                dateStr,
+                                                endDate
+                                            );
+                                        }
+                                    }}
+                                    placeholder="Начальная дата"
+                                />
+                                <span className="text-gray-500 dark:text-gray-400">
+                                    -
+                                </span>
+                                <DatePicker
+                                    id="end-date-filter"
+                                    defaultDate={endDate || undefined}
+                                    onChange={(_selectedDates, dateStr) => {
+                                        if (dateStr) {
+                                            onDateFilterChange(
+                                                startDate,
+                                                dateStr
+                                            );
+                                        }
+                                    }}
+                                    placeholder="Конечная дата"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Clear All Filters Button */}
+                        {(selectedSupplierId || startDate || endDate) && (
+                            <button
+                                onClick={() => {
+                                    onClearSupplierFilter();
+                                    onClearDateFilter();
+                                }}
+                                className="text-red-600 hover:text-red-800 bg-red-100 p-3 rounded-md text-sm font-medium"
+                            >
+                                <IoMdCloseCircle size={20} />
+                            </button>
+                        )}
 
                         <div className="flex gap-3">
                             <Button

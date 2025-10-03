@@ -15,6 +15,7 @@ import PaymentExcelDownloadModal from "../../components/modals/PaymentExcelDownl
 import { BASE_URL } from "../../service/data";
 import { formatCurrency } from "../../utils/numberFormat";
 import Select from "../../components/form/Select.tsx";
+import DatePicker from "../../components/form/date-picker";
 import { IoMdCloseCircle } from "react-icons/io";
 
 export interface Payment {
@@ -68,6 +69,8 @@ export default function PaymentList() {
     const [selectedSupplierId, setSelectedSupplierId] = useState("");
     const [isSearchingSuppliersFilter, setIsSearchingSuppliersFilter] =
         useState(false);
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
 
     const { searchQuery } = useSearch();
 
@@ -177,6 +180,20 @@ export default function PaymentList() {
         setCurrentPage(1);
     };
 
+    // Handle date filter change
+    const handleDateFilterChange = (start: string, end: string) => {
+        setStartDate(start);
+        setEndDate(end);
+        setCurrentPage(1); // Reset to first page when filter changes
+    };
+
+    // Clear date filter
+    const clearDateFilter = () => {
+        setStartDate("");
+        setEndDate("");
+        setCurrentPage(1);
+    };
+
     // Format date from YYYY-MM-DD to dd-mm-yyyy
     const formatDateToDDMMYYYY = (dateString: string) => {
         const date = new Date(dateString);
@@ -192,6 +209,12 @@ export default function PaymentList() {
             let url = `api/payments/list?page=${page}&limit=30`;
             if (selectedSupplierId) {
                 url += `&supplier_id=${selectedSupplierId}`;
+            }
+            if (startDate) {
+                url += `&start_date=${startDate}`;
+            }
+            if (endDate) {
+                url += `&end_date=${endDate}`;
             }
 
             const response = await GetDataSimple(url);
@@ -442,7 +465,7 @@ export default function PaymentList() {
         loadPayments(1);
         fetchSuppliers();
         balance();
-    }, [selectedSupplierId]);
+    }, [selectedSupplierId, startDate, endDate]);
 
     useEffect(() => {
         if (searchQuery) {
@@ -493,15 +516,55 @@ export default function PaymentList() {
                                 defaultValue={selectedSupplierId}
                             />
                         </div>
-                        {selectedSupplierId && (
-                            <button
-                                onClick={clearSupplierFilter}
-                                className="text-red-600 hover:text-red-800 bg-red-100 p-3 rounded-md text-sm font-medium"
-                            >
-                                <IoMdCloseCircle size={20} />
-                            </button>
-                        )}
                     </div>
+
+                    {/* Date Filter */}
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
+                            <DatePicker
+                                id="start-date-filter"
+                                defaultDate={startDate || undefined}
+                                onChange={(_selectedDates, dateStr) => {
+                                    if (dateStr) {
+                                        handleDateFilterChange(
+                                            dateStr,
+                                            endDate
+                                        );
+                                    }
+                                }}
+                                placeholder="Начальная дата"
+                            />
+                            <span className="text-gray-500 dark:text-gray-400">
+                                -
+                            </span>
+                            <DatePicker
+                                id="end-date-filter"
+                                defaultDate={endDate || undefined}
+                                onChange={(_selectedDates, dateStr) => {
+                                    if (dateStr) {
+                                        handleDateFilterChange(
+                                            startDate,
+                                            dateStr
+                                        );
+                                    }
+                                }}
+                                placeholder="Конечная дата"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Clear All Filters Button */}
+                    {(selectedSupplierId || startDate || endDate) && (
+                        <button
+                            onClick={() => {
+                                clearSupplierFilter();
+                                clearDateFilter();
+                            }}
+                            className="text-red-600 hover:text-red-800 bg-red-100 p-3 rounded-md text-sm font-medium"
+                        >
+                            <IoMdCloseCircle size={20} />
+                        </button>
+                    )}
 
                     <Button
                         type="button"
@@ -526,7 +589,7 @@ export default function PaymentList() {
                     >
                         Скачать Excel
                     </Button>
-                    <Button onClick={handleAddPayment}>Добавить платеж</Button>
+                    <Button size="sm" onClick={handleAddPayment}>Добавить платеж</Button>
                 </div>
             </div>
 
