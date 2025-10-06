@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "../../components/ui/button/Button.tsx";
 import { toast } from "react-hot-toast";
-import { DeleteData } from "../../service/data.ts";
+import { DeleteDataCustom } from "../../service/data.ts";
 import { Modal } from "../../components/ui/modal/index.tsx";
 import { TrashBinIcon } from "../../icons/index.ts";
 import PaymentModal from "../../components/modals/PaymentModal";
@@ -177,6 +177,7 @@ export default function TableArrival({
         null
     );
     const [isDeleting, setIsDeleting] = useState(false);
+    const [deletedComments, setDeletedComments] = useState("");
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
     const [selectedPaymentArrival, setSelectedPaymentArrival] =
         useState<Arrival | null>(null);
@@ -201,14 +202,23 @@ export default function TableArrival({
 
         setIsDeleting(true);
         try {
-            await DeleteData(
-                `api/arrival/delete/${selectedArrival.arrival_id}`
+            const deleteData = {
+                deleted_comments: deletedComments.trim(),
+            };
+
+            await DeleteDataCustom(
+                `api/arrival/delete/${selectedArrival.arrival_id}`,
+                deleteData
             );
             toast.success("Приход успешно удален");
             changeStatus();
             setDeleteModalOpen(false);
-        } catch (error) {
-            toast.error("Ошибка при удалении прихода");
+            setDeletedComments(""); // Clear comments after successful delete
+        } catch (error: any) {
+            console.log(error);
+
+            setDeleteModalOpen(false);
+            toast.error(error.response.data.error);
         } finally {
             setIsDeleting(false);
         }
@@ -921,10 +931,13 @@ export default function TableArrival({
             {/* Delete Confirmation Modal */}
             <Modal
                 isOpen={deleteModalOpen}
-                onClose={() => setDeleteModalOpen(false)}
+                onClose={() => {
+                    setDeleteModalOpen(false);
+                    setDeletedComments("");
+                }}
                 className="max-w-md"
             >
-                <div className="p-6 text-center">
+                <div className="p-6">
                     <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full dark:bg-red-900">
                         <svg
                             className="w-6 h-6 text-red-600 dark:text-red-400"
@@ -941,10 +954,10 @@ export default function TableArrival({
                         </svg>
                     </div>
 
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 text-center">
                         Удалить приход
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 text-center">
                         Вы уверены, что хотите удалить приход от "
                         {selectedArrival?.supplier_name}
                         "?
@@ -952,11 +965,28 @@ export default function TableArrival({
                         Это действие нельзя отменить.
                     </p>
 
+                    {/* Comment Input */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Комментарий к удалению (необязательно)
+                        </label>
+                        <input
+                            type="text"
+                            value={deletedComments}
+                            onChange={(e) => setDeletedComments(e.target.value)}
+                            placeholder="Укажите причину удаления..."
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none  dark:bg-gray-700 dark:text-white resize-none"
+                        />
+                    </div>
+
                     <div className="flex justify-center space-x-3">
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setDeleteModalOpen(false)}
+                            onClick={() => {
+                                setDeleteModalOpen(false);
+                                setDeletedComments("");
+                            }}
                             disabled={isDeleting}
                             className="px-6 py-2.5"
                         >

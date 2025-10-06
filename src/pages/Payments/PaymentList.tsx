@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { useSearch } from "../../context/SearchContext";
 import {
     SearchPayments,
-    DeletePayment,
     GetDataSimple,
+    DeleteDataCustom,
 } from "../../service/data";
 
 import Button from "../../components/ui/button/Button";
 import toast from "react-hot-toast";
-import DeleteConfirmationModal from "../../components/modals/DeleteConfirmationModal";
+import { Modal } from "../../components/ui/modal/index";
 import { AddPaymentModal } from "./AddPaymentModal";
 import { PaymentTable } from "./PaymentTable";
 import PaymentExcelDownloadModal from "../../components/modals/PaymentExcelDownloadModal";
@@ -52,6 +52,7 @@ export default function PaymentList() {
         supplierName: string;
     } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [deletedComments, setDeletedComments] = useState("");
 
     // Excel download states
     const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
@@ -262,14 +263,21 @@ export default function PaymentList() {
 
         try {
             setIsDeleting(true);
-            await DeletePayment(parseInt(paymentToDelete.id));
+            const deleteData = {
+                deleted_comments: deletedComments.trim(),
+            };
+
+            await DeleteDataCustom(
+                `api/payments/delete/${paymentToDelete.id}`,
+                deleteData
+            );
             toast.success("Платеж успешно удален");
             loadPayments(currentPage);
             setIsDeleteModalOpen(false);
             setPaymentToDelete(null);
+            setDeletedComments(""); // Clear comments after successful delete
         } catch (error: any) {
             setIsDeleteModalOpen(false);
-
             toast.error(error.response.data.error);
         } finally {
             setIsDeleting(false);
@@ -279,6 +287,7 @@ export default function PaymentList() {
     const handleDeleteCancel = () => {
         setIsDeleteModalOpen(false);
         setPaymentToDelete(null);
+        setDeletedComments("");
     };
 
     const handleAddPayment = () => {
@@ -589,7 +598,9 @@ export default function PaymentList() {
                     >
                         Скачать Excel
                     </Button>
-                    <Button size="sm" onClick={handleAddPayment}>Добавить платеж</Button>
+                    <Button size="sm" onClick={handleAddPayment}>
+                        Добавить платеж
+                    </Button>
                 </div>
             </div>
 
@@ -613,15 +624,76 @@ export default function PaymentList() {
             )}
 
             {/* Delete Confirmation Modal */}
-            <DeleteConfirmationModal
+            <Modal
                 isOpen={isDeleteModalOpen}
                 onClose={handleDeleteCancel}
-                onConfirm={handleDeleteConfirm}
-                title="Удалить платеж"
-                message="Вы уверены, что хотите удалить этот платеж? Это действие нельзя отменить."
-                itemName={paymentToDelete?.supplierName}
-                isLoading={isDeleting}
-            />
+                className="max-w-md"
+            >
+                <div className="p-6">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full dark:bg-red-900">
+                        <svg
+                            className="w-6 h-6 text-red-600 dark:text-red-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
+                        </svg>
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 text-center">
+                        Удалить платеж
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 text-center">
+                        Вы уверены, что хотите удалить платеж от "
+                        {paymentToDelete?.supplierName}
+                        "?
+                        <br />
+                        Это действие нельзя отменить.
+                    </p>
+
+                    {/* Comment Input */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Комментарий к удалению (необязательно)
+                        </label>
+                        <input
+                            type="text"
+                            value={deletedComments}
+                            onChange={(e) => setDeletedComments(e.target.value)}
+                            placeholder="Укажите причину удаления..."
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none dark:bg-gray-700 dark:text-white"
+                            disabled={isDeleting}
+                        />
+                    </div>
+
+                    <div className="flex justify-center space-x-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleDeleteCancel}
+                            disabled={isDeleting}
+                            className="px-6 py-2.5"
+                        >
+                            Отмена
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="danger"
+                            onClick={handleDeleteConfirm}
+                            disabled={isDeleting}
+                            className="px-6 py-2.5"
+                        >
+                            {isDeleting ? "Удаление..." : "Удалить"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Excel Download Modal */}
             <PaymentExcelDownloadModal

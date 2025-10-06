@@ -1,5 +1,6 @@
 import axios from "axios";
 import { handleAuthError } from "../utils/authUtils";
+import config from "../config/env";
 
 axios.interceptors.response.use(
     (response) => response,
@@ -26,7 +27,7 @@ export const GetDataSimpleBlob = async (url: string, config: any = {}) => {
     return response.data;
 };
 
-export const BASE_URL = "https://apiwh.ph.town/";
+export const BASE_URL = config.API_BASE_URL;
 
 export const Token = localStorage.getItem("token");
 export const Role = localStorage.getItem("role");
@@ -114,6 +115,18 @@ export const DeleteData = async (url: string) => {
         headers: {
             Authorization: `Bearer ${Token}`,
         },
+        // Some backends require payload with DELETE; axios supports it via `data`
+    });
+    return response;
+};
+
+export const DeleteDataCustom = async (url: string, data?: any) => {
+    const response = await axios.delete(BASE_URL + url, {
+        headers: {
+            Authorization: `Bearer ${Token}`,
+        },
+        // Some backends require payload with DELETE; axios supports it via `data`
+        data,
     });
     return response;
 };

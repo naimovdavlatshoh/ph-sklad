@@ -54,7 +54,9 @@ export default function TableOstatki({
     const [isDownloading, setIsDownloading] = useState(false);
 
     const formatNumber = (num: number) => {
-        return parseFloat(num.toString()).toString();
+        return new Intl.NumberFormat("en-US")
+            .format(parseFloat(num.toString()))
+            .replace(/,/g, " ");
     };
 
     const handleExcelDownload = async () => {
@@ -409,7 +411,7 @@ export default function TableOstatki({
                                                 <td className="px-5 py-4 text-sm text-black dark:text-white font-medium">
                                                     {formatNumber(
                                                         item.receipt_price
-                                                    )}{" "}
+                                                    )}
                                                     сум
                                                 </td>
                                                 <td className="px-5 py-4 text-sm text-black dark:text-white">
