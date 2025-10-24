@@ -34,8 +34,8 @@ export default function DatePicker({
             defaultDate,
             maxDate,
             onChange,
+            // @ts-ignore
             onReady: function (selectedDates, dateStr, instance) {
-                console.log(selectedDates, dateStr);
                 // Add custom styling for disabled dates
                 const today = new Date();
                 today.setHours(23, 59, 59, 999); // End of today
@@ -55,9 +55,8 @@ export default function DatePicker({
                     }
                 });
             },
+            // @ts-ignore
             onMonthChange: function (selectedDates, dateStr, instance) {
-                console.log(selectedDates, dateStr);
-
                 // Reapply styling when month changes
                 const today = new Date();
                 today.setHours(23, 59, 59, 999);

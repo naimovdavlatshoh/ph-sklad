@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb.tsx";
 import ComponentCard from "../../components/common/ComponentCard.tsx";
 import PageMeta from "../../components/common/PageMeta.tsx";
-import { GetDataSimple, PostSimple } from "../../service/data.ts";
+import { BASE_URL, GetDataSimple, PostSimple } from "../../service/data.ts";
 import Pagination from "../../components/common/Pagination.tsx";
 import { Toaster } from "react-hot-toast";
 import TableMaterialsIssues from "./TableMaterialsIssues.tsx";
@@ -12,6 +12,8 @@ import { useModal } from "../../hooks/useModal.ts";
 import Loader from "../../components/ui/loader/Loader.tsx";
 import CreateMaterialIssuance from "./CreateMaterialIssuance.tsx";
 import ReturnTool from "./ReturnTool.tsx";
+import MaterialsIssuesExcelDownloadModal from "../../components/modals/MaterialsIssuesExcelDownloadModal.tsx";
+import Button from "../../components/ui/button/Button.tsx";
 
 interface MaterialIssue {
     id: number;
@@ -63,6 +65,16 @@ export default function MaterialsIssuesList() {
     const [returnFilter, setReturnFilter] = useState<"without" | "with">(
         "with"
     );
+    const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [foremen, setForemen] = useState<any[]>([]);
+    const [isSearchingForemen, setIsSearchingForemen] = useState(false);
+    const [excelFilters, setExcelFilters] = useState({
+        start_date: "",
+        end_date: "",
+        foreman_id: "",
+    });
+    const [totalCount, setTotalCount] = useState(0);
 
     const fetchIssues = useCallback(async () => {
         setLoading(true);
@@ -108,6 +120,202 @@ export default function MaterialsIssuesList() {
     //         console.error("Error fetching materials:", error);
     //     }
     // }, []);
+
+    const fetchForemen = useCallback(async () => {
+        try {
+            const response: any = await GetDataSimple(
+                "api/foreman/list?page=1&limit=100"
+            );
+            const foremenData =
+                response?.result || response?.data?.result || [];
+            setForemen(foremenData);
+        } catch (error) {
+            console.error("Error fetching foremen:", error);
+        }
+    }, []);
+
+    // Search foremen function
+    const handleForemanSearch = async (query: string) => {
+        if (!query.trim()) {
+            fetchForemen();
+            return;
+        }
+
+        // Only search if query has at least 3 characters
+        if (query.trim().length < 3) {
+            return;
+        }
+
+        try {
+            setIsSearchingForemen(true);
+            const response = await fetch(
+                `${BASE_URL}api/foreman/search?keyword=${encodeURIComponent(
+                    query
+                )}`,
+                {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: localStorage.getItem("token")
+                            ? `Bearer ${localStorage.getItem("token")}`
+                            : "",
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setForemen(data.result || data.data || []);
+            }
+        } catch (error) {
+            console.error("Error searching foremen:", error);
+        } finally {
+            setIsSearchingForemen(false);
+        }
+    };
+
+    const formatDateToDDMMYYYY = (dateString: string) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    };
+
+    const handleExcelDownload = async () => {
+        // Check that both dates are present before downloading
+        if (
+            !excelFilters.start_date ||
+            !excelFilters.end_date ||
+            excelFilters.start_date.trim() === "" ||
+            excelFilters.end_date.trim() === ""
+        ) {
+            toast.error("Пожалуйста, выберите дату начала и дату окончания");
+            return;
+        }
+
+        setIsDownloading(true);
+        try {
+            const token = localStorage.getItem("token");
+
+            const params = new URLSearchParams({
+                start_date: formatDateToDDMMYYYY(excelFilters.start_date),
+                end_date: formatDateToDDMMYYYY(excelFilters.end_date),
+            });
+
+            if (excelFilters.foreman_id) {
+                params.append("foreman_id", excelFilters.foreman_id);
+            }
+
+            const response = await fetch(
+                `${BASE_URL}api/excel/materialissues?${params.toString()}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel, application/octet-stream",
+                        Authorization: token ? `Bearer ${token}` : "",
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to download Excel file");
+            }
+
+            const blob = await response.blob();
+            const excelBlob = new Blob([blob], {
+                type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            });
+
+            const url = window.URL.createObjectURL(excelBlob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Выдача-материалов_${formatDateToDDMMYYYY(
+                excelFilters.start_date
+            )}_${formatDateToDDMMYYYY(excelFilters.end_date)}.xlsx`;
+            link.style.display = "none";
+
+            document.body.appendChild(link);
+            link.click();
+
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success("Excel файл успешно скачан");
+            setIsExcelModalOpen(false);
+        } catch (error) {
+            toast.error("Ошибка при скачивании Excel файла");
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
+    const handleFiltersChange = (newFilters: any) => {
+        setExcelFilters(newFilters);
+        // Only call API if both dates are present
+        if (
+            newFilters.start_date &&
+            newFilters.end_date &&
+            newFilters.start_date.trim() !== "" &&
+            newFilters.end_date.trim() !== ""
+        ) {
+            // Call getTotalCount with the new filters directly
+            getTotalCountWithFilters(newFilters);
+        } else {
+            setTotalCount(0);
+        }
+    };
+
+    const getTotalCountWithFilters = async (filters: any) => {
+        // Double check that both dates are present
+        if (
+            !filters.start_date ||
+            !filters.end_date ||
+            filters.start_date.trim() === "" ||
+            filters.end_date.trim() === ""
+        ) {
+            setTotalCount(0);
+            return;
+        }
+
+        try {
+            const formattedStartDate = formatDateToDDMMYYYY(filters.start_date);
+            const formattedEndDate = formatDateToDDMMYYYY(filters.end_date);
+
+            const params = new URLSearchParams({
+                start_date: formattedStartDate,
+                end_date: formattedEndDate,
+                count: "1",
+            });
+
+            if (filters.foreman_id) {
+                params.append("foreman_id", filters.foreman_id);
+            }
+
+            const response = await fetch(
+                `${BASE_URL}api/excel/materialissues?${params.toString()}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: localStorage.getItem("token")
+                            ? `Bearer ${localStorage.getItem("token")}`
+                            : "",
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                setTotalCount(data.total_count || 0);
+            }
+        } catch (error) {
+            setTotalCount(0);
+        }
+    };
 
     const performSearch = useCallback(
         async (query: string) => {
@@ -169,7 +377,8 @@ export default function MaterialsIssuesList() {
     // Initial fetch when component mounts
     useEffect(() => {
         fetchIssues();
-    }, [fetchIssues]);
+        fetchForemen();
+    }, [fetchIssues, fetchForemen]);
 
     // Fetch foremen and materials when modal opens
     // useEffect(() => {
@@ -201,25 +410,50 @@ export default function MaterialsIssuesList() {
             <ComponentCard
                 title="Список выданных материалов"
                 desc={
-                    <button
-                        onClick={openModal}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-                    >
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                    <div className="flex gap-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsExcelModalOpen(true)}
+                            startIcon={
+                                <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
+                                </svg>
+                            }
                         >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                            />
-                        </svg>
-                        Создать выдачу
-                    </button>
+                            Скачать Excel
+                        </Button>
+                        <button
+                            onClick={openModal}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                        >
+                            <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                />
+                            </svg>
+                            Создать выдачу
+                        </button>
+                    </div>
                 }
             >
                 <TableMaterialsIssues
@@ -255,6 +489,19 @@ export default function MaterialsIssuesList() {
                 }}
                 changeStatus={changeStatus}
                 issueId={selectedIssueId}
+            />
+
+            {/* Materials Issues Excel Download Modal */}
+            <MaterialsIssuesExcelDownloadModal
+                isOpen={isExcelModalOpen}
+                onClose={() => setIsExcelModalOpen(false)}
+                onDownload={handleExcelDownload}
+                isLoading={isDownloading}
+                foremen={foremen}
+                onFiltersChange={handleFiltersChange}
+                totalCount={totalCount}
+                onForemanSearch={handleForemanSearch}
+                isSearchingForemen={isSearchingForemen}
             />
 
             <Toaster

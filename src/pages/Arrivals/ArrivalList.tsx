@@ -19,6 +19,7 @@ interface PaymentHistory {
     user_name: string;
     arrival_id: string;
     payment_amount: string;
+    payment_amount_formatted: string;
     payment_method: string;
     payment_method_text: string;
     cash_type: string;
@@ -36,11 +37,14 @@ interface Arrival {
     payment_status: string;
     payment_status_text: string;
     total_price: string;
+    total_price_formatted: string;
+    delivery_price_formatted: string;
     delivery_price: string;
     arrival_dollar_rate: string;
     comments: string;
     created_at: string;
     total_payments: string;
+
     cash_type_text: string;
     cash_type: string;
     payment_history: PaymentHistory[];
@@ -467,18 +471,11 @@ export default function ArrivalList() {
 
     // Handle search and page changes
     useEffect(() => {
-        console.log("Search effect triggered:", {
-            currentPage,
-            searchQuery,
-            status,
-            activeTab,
-        });
         if (currentPage === "arrivals" && activeTab === "prixod") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
                 console.log("Performing search for:", searchQuery);
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all data");
                 if (activeTab === "prixod") {
                     fetchArrivals();
                 }

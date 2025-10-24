@@ -49,7 +49,6 @@ export default function SupplierList() {
             setTotalPages(totalPagesData);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching suppliers:", error);
             toast.error("Что-то пошло не так при загрузке поставщиков");
         }
     }, [page]);
@@ -64,9 +63,7 @@ export default function SupplierList() {
 
             // If search query is too short, don't search, just fetch all suppliers
             if (query.trim().length < 3) {
-                console.log(
-                    "Search query is too short, fetching all suppliers"
-                );
+
                 fetchSuppliers();
                 return;
             }
@@ -91,7 +88,6 @@ export default function SupplierList() {
                     fetchSuppliers();
                 }
             } catch (error) {
-                console.error("Search error:", error);
                 fetchSuppliers();
             } finally {
                 setIsSearching(false);
@@ -124,12 +120,11 @@ export default function SupplierList() {
             }
 
             // Check if response is actually an Excel file
+            // @ts-ignore
             const contentType = response.headers.get("content-type");
-            console.log("Response Content-Type:", contentType);
 
             const blob = await response.blob();
-            console.log("Blob size:", blob.size, "bytes");
-            console.log("Blob type:", blob.type);
+
 
             // Create blob with correct MIME type
             const excelBlob = new Blob([blob], {
@@ -156,7 +151,6 @@ export default function SupplierList() {
             toast.success("Excel файл успешно скачан");
             setIsExcelModalOpen(false);
         } catch (error) {
-            console.error("Error downloading Excel file:", error);
             toast.error("Ошибка при скачивании Excel файла");
         } finally {
             setIsDownloading(false);
@@ -170,17 +164,11 @@ export default function SupplierList() {
 
     // Handle search and page changes
     useEffect(() => {
-        console.log("Search effect triggered:", {
-            currentPage,
-            searchQuery,
-            status,
-        });
+
         if (currentPage === "suppliers") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
-                console.log("Performing search for:", searchQuery);
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all suppliers");
                 fetchSuppliers();
             } else {
                 console.log(

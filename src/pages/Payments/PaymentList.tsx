@@ -29,6 +29,7 @@ export interface Payment {
     payment_dollar_rate_that_time: string;
     arrival_dollar_rate_that_time: string;
     payment_amount: string;
+    payment_amount_formatted: string;
     payment_method: string;
     payment_method_text: string;
     cash_type_text: string;

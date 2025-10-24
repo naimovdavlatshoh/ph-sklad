@@ -151,7 +151,7 @@ export default function KitchenExcelDownloadModal({
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Поставщик <span className="text-red-500">*</span>
+                            Поставщик
                         </label>
                         <Select
                             options={suppliers.map((supplier) => ({

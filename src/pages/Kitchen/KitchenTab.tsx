@@ -70,7 +70,6 @@ export default function KitchenTab() {
             setTotalPages(totalPagesData);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching kitchens:", error);
             toast.error("Что-то пошло не так при загрузке кухни");
         }
     }, [page]);
@@ -84,7 +83,6 @@ export default function KitchenTab() {
 
             // If search query is too short, don't search, just fetch all data
             if (query.trim().length < 3) {
-                console.log("Search query is too short, fetching all data");
                 fetchKitchens();
                 return;
             }
@@ -109,7 +107,6 @@ export default function KitchenTab() {
                     fetchKitchens();
                 }
             } catch (error) {
-                console.error("Search error:", error);
                 fetchKitchens();
             } finally {
                 setIsSearching(false);
@@ -249,7 +246,6 @@ export default function KitchenTab() {
             toast.success("Excel файл успешно скачан");
             setIsExcelModalOpen(false);
         } catch (error) {
-            console.error("Error downloading Excel file:", error);
             toast.error("Ошибка при скачивании Excel файла");
         } finally {
             setIsDownloading(false);
@@ -257,7 +253,7 @@ export default function KitchenTab() {
     };
 
     const handleFiltersChange = (newFilters: any) => {
-        console.log("Filters changed:", newFilters);
+
         setExcelFilters(newFilters);
         // Only call API if both dates are present
         if (
@@ -266,13 +262,11 @@ export default function KitchenTab() {
             newFilters.start_date.trim() !== "" &&
             newFilters.end_date.trim() !== ""
         ) {
-            console.log(
-                "Both dates present, calling getTotalCount with new filters"
-            );
+
             // Call getTotalCount with the new filters directly
             getTotalCountWithFilters(newFilters);
         } else {
-            console.log("Missing dates, not calling API");
+
             setTotalCount(0);
         }
     };
@@ -285,9 +279,7 @@ export default function KitchenTab() {
             filters.start_date.trim() === "" ||
             filters.end_date.trim() === ""
         ) {
-            console.log(
-                "Missing dates in getTotalCountWithFilters, skipping API call"
-            );
+
             setTotalCount(0);
             return;
         }
@@ -296,12 +288,7 @@ export default function KitchenTab() {
             const formattedStartDate = formatDateToDDMMYYYY(filters.start_date);
             const formattedEndDate = formatDateToDDMMYYYY(filters.end_date);
 
-            console.log("Getting total count with dates:", {
-                start_date: filters.start_date,
-                end_date: filters.end_date,
-                formattedStartDate,
-                formattedEndDate,
-            });
+
 
             const params = new URLSearchParams({
                 start_date: formattedStartDate,
@@ -331,7 +318,6 @@ export default function KitchenTab() {
                 setTotalCount(data.total_count || 0);
             }
         } catch (error) {
-            console.error("Error getting total count:", error);
             setTotalCount(0);
         }
     };
@@ -344,17 +330,11 @@ export default function KitchenTab() {
 
     // Handle search and page changes
     useEffect(() => {
-        console.log("Search effect triggered:", {
-            currentPage,
-            searchQuery,
-            status,
-        });
+
         if (currentPage === "kitchen") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
-                console.log("Performing search for:", searchQuery);
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all data");
                 fetchKitchens();
             } else {
                 console.log(

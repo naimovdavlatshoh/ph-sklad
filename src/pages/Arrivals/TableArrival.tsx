@@ -104,6 +104,7 @@ interface PaymentHistory {
     user_name: string;
     arrival_id: string;
     payment_amount: string;
+    payment_amount_formatted: string;
     payment_method: string;
     payment_method_text: string;
     cash_type: string;
@@ -118,6 +119,8 @@ interface ArrivalItem {
     material_id: string;
     material_name: string;
     amount: string;
+    amount_formatted: string;
+    price_formatted: string;
     price: string;
     created_at: string;
     short_name: string;
@@ -132,6 +135,8 @@ interface Arrival {
     payment_status: string;
     payment_status_text: string;
     total_price: string;
+    total_price_formatted: string;
+    delivery_price_formatted: string;
     delivery_price: string;
     arrival_dollar_rate: string;
     comments: string;
@@ -721,18 +726,13 @@ export default function TableArrival({
                                                                   "0"
                                                           ) >=
                                                           parseFloat(
-                                                              arrival.total_price
+                                                              arrival.total_price_formatted
                                                           ) ? (
                                                             // 100% to'langan holatda
                                                             <span className="text-green-600 dark:text-green-400">
-                                                                {parseFloat(
-                                                                    arrival.total_price
-                                                                )
-                                                                    .toLocaleString()
-                                                                    .replace(
-                                                                        /,/g,
-                                                                        " "
-                                                                    )}{" "}
+                                                                {
+                                                                    arrival.total_price_formatted
+                                                                }
                                                                 {
                                                                     arrival.cash_type_text
                                                                 }
@@ -740,14 +740,10 @@ export default function TableArrival({
                                                         ) : (
                                                             // 0% to'lanmagan holatda
                                                             <span className="text-red-600 dark:text-red-400">
-                                                                {parseFloat(
-                                                                    arrival.total_price
-                                                                )
-                                                                    .toLocaleString()
-                                                                    .replace(
-                                                                        /,/g,
-                                                                        " "
-                                                                    )}{" "}
+                                                                {
+                                                                    arrival.total_price_formatted
+                                                                }
+
                                                                 {
                                                                     arrival.cash_type_text
                                                                 }
@@ -1133,21 +1129,11 @@ export default function TableArrival({
                                                         </div>
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                        {parseFloat(item.amount)
-                                                            .toLocaleString()
-                                                            .replace(
-                                                                /,/g,
-                                                                " "
-                                                            )}{" "}
+                                                        {item.amount_formatted}{" "}
                                                         {item.short_name}
                                                     </td>
                                                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                                        {parseFloat(item.price)
-                                                            .toLocaleString()
-                                                            .replace(
-                                                                /,/g,
-                                                                " "
-                                                            )}{" "}
+                                                        {item.price_formatted}{" "}
                                                         {selectedItemsArrival?.cash_type_text ||
                                                             "сум"}
                                                     </td>

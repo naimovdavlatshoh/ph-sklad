@@ -16,8 +16,9 @@ export default function ClientList() {
     const [totalPages, setTotalPages] = useState(1);
     const { isOpen, openModal, closeModal } = useModal();
     const [status, setStatus] = useState(false);
+    // @ts-ignore
     const [response, setResponse] = useState("");
-    console.log(response);
+
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {

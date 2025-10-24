@@ -17,7 +17,7 @@ import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-// import Home from "./pages/Dashboard/Home";
+import Home from "./pages/Dashboard/Home";
 import UserList from "./pages/Users/UserList";
 import { Toaster } from "react-hot-toast";
 import { SearchProvider } from "./context/SearchContext";
@@ -71,7 +71,8 @@ export default function App() {
                                 </ProtectedRoute>
                             }
                         >
-                            <Route index path="/" element={<UserList />} />
+                            <Route index path="/" element={<Home />} />
+                            <Route index path="/users" element={<UserList />} />
 
                             {/* Others Page */}
                             <Route path="/profile" element={<UserProfiles />} />

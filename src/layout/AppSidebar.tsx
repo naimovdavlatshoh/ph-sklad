@@ -19,6 +19,7 @@ import {
     // BoxCubeIcon,
     // CalenderIcon,
     ChevronDownIcon,
+    GridIcon,
     // GridIcon,
     HorizontaLDots,
     // ListIcon,
@@ -43,16 +44,16 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-    // {
-    //     icon: <GridIcon />,
-    //     name: "Dashboard",
-    //     path: "/",
-    //     roles: [1, 2, 4], // Admin, Director, Labarant
-    // },
+    {
+        icon: <GridIcon />,
+        name: "Dashboard",
+        path: "/",
+        roles: [1, 2, 4], // Admin, Director, Labarant
+    },
     {
         name: "Пользователи",
         icon: <UserIcon />,
-        path: "/",
+        path: "/users",
         roles: [1], // Faqat Admin
     },
     {
@@ -501,11 +502,11 @@ const AppSidebar: React.FC = () => {
                 <Link to="/">
                     {isExpanded || isHovered || isMobileOpen ? (
                         <span className="text-2xl font-bold text-brand-500 dark:text-brand-400">
-                            СКЛАД
+                            WAREHOUSE
                         </span>
                     ) : (
                         <span className="text-xl font-bold text-brand-500 dark:text-brand-400">
-                            С
+                            W
                         </span>
                     )}
                 </Link>

@@ -43,10 +43,8 @@ export default function AddMaterial({
     useEffect(() => {
         GetDataSimple("api/materials/unit/list")
             .then((res: any) => {
-                console.log("Units API response:", res);
                 const unitsData = res?.result || res?.data?.result || res || [];
                 setUnits(unitsData);
-                console.log("Units data:", unitsData);
             })
             .catch((error) => {
                 console.error("Error fetching units:", error);
@@ -103,7 +101,6 @@ export default function AddMaterial({
                 toast.error("Что-то пошло не так при создании материала");
             }
         } catch (error) {
-            console.error("Error creating material:", error);
             toast.error("Что-то пошло не так при создании материала");
         } finally {
             setLoading(false);

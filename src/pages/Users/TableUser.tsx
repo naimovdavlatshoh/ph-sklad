@@ -31,12 +31,11 @@ interface TableUserProps {
 
 export default function TableUser({ users, changeStatus }: TableUserProps) {
     const { isOpen, openModal, closeModal } = useModal();
-
+    // @ts-ignore
     const [response, setResponse] = useState("");
     const [selectedUser, setSelectedUser] = useState<Users | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    console.log(response);
 
     const onDeleteUser = async () => {
         setIsDeleting(true);
@@ -52,7 +51,7 @@ export default function TableUser({ users, changeStatus }: TableUserProps) {
         }
     };
 
-    console.log(users[0]?.role_name);
+
 
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">

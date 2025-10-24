@@ -3,7 +3,7 @@ import Button from "../../components/ui/button/Button.tsx";
 import { toast } from "react-hot-toast";
 import { DeleteData } from "../../service/data.ts";
 import { Modal } from "../../components/ui/modal/index.tsx";
-import { PencilIcon } from "../../icons/index.ts";
+import { PencilIcon, TrashBinIcon } from "../../icons/index.ts";
 import EditMaterial from "./EditMaterial.tsx";
 
 interface Material {
@@ -44,10 +44,9 @@ export default function TableMaterial({
             toast.success("Материал успешно удален");
             changeStatus();
             setDeleteModalOpen(false);
-        } catch (error) {
-            toast.error("Ошибка при удалении материала");
-        } finally {
-            setIsDeleting(false);
+        } catch (error: any) {
+            setDeleteModalOpen(false);
+            toast.error(error.response.data.error);
         }
     };
 
@@ -148,7 +147,7 @@ export default function TableMaterial({
                                                 >
                                                     {""}
                                                 </Button>
-                                                {/* <Button
+                                                <Button
                                                     onClick={() => {
                                                         setDeleteModalOpen(
                                                             true
@@ -164,7 +163,7 @@ export default function TableMaterial({
                                                     }
                                                 >
                                                     {""}
-                                                </Button> */}
+                                                </Button>
                                             </div>
                                         </td>
                                     </tr>
@@ -175,7 +174,6 @@ export default function TableMaterial({
                 </div>
             </div>
 
-            {/* Delete Confirmation Modal */}
             <Modal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}

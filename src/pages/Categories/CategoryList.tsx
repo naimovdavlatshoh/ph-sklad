@@ -24,10 +24,8 @@ export default function CategoryList() {
     useEffect(() => {
         if (currentPage === "categories") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
-                console.log("Performing search for categories:", searchQuery);
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all categories");
                 fetchCategories();
             } else {
                 console.log(
@@ -44,7 +42,6 @@ export default function CategoryList() {
             const response: any = await GetDataSimple(
                 `api/materials/category/list?page=${page}&limit=30`
             );
-            console.log(response);
 
             const categoriesData =
                 response?.result || response?.data?.result || [];
@@ -55,7 +52,6 @@ export default function CategoryList() {
             setTotalPages(totalPagesData);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching categories:", error);
             toast.error("Что-то пошло не так при загрузке категорий");
         }
     };
@@ -86,7 +82,6 @@ export default function CategoryList() {
                 fetchCategories();
             }
         } catch (error) {
-            console.error("Search error:", error);
             fetchCategories();
         } finally {
             setIsSearching(false);

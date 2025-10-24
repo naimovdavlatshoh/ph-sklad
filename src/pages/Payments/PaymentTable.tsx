@@ -11,6 +11,9 @@ import { Payment } from "./PaymentList";
 import Pagination from "../../components/common/Pagination";
 import { TrashBinIcon } from "../../icons";
 import { formatDateTime } from "../../utils/numberFormat";
+import { Modal } from "../../components/ui/modal/index.tsx";
+import { GetDataSimple } from "../../service/data.ts";
+import { toast } from "react-hot-toast";
 
 // Comment icon SVG
 const CommentIcon = ({ className }: { className?: string }) => (
@@ -29,6 +32,53 @@ const CommentIcon = ({ className }: { className?: string }) => (
         />
     </svg>
 );
+
+interface PaymentDetails {
+    arrival_id: string;
+    invoice_number: string;
+    user_name: string;
+    supplier_id: string;
+    supplier_name: string;
+    payment_status: string;
+    payment_status_text: string;
+    total_price: string;
+    delivery_price: string;
+    total_price_formatted: string;
+    delivery_price_formatted: string;
+    arrival_dollar_rate: string;
+    cash_type: string;
+    cash_type_text: string;
+    comments: string;
+    created_at: string;
+    total_payments: string;
+    items: Array<{
+        arrival_item_id: string;
+        arrival_id: string;
+        material_id: string;
+        material_name: string;
+        unit_name: string;
+        short_name: string;
+        amount: string;
+        amount_formatted: string;
+        price: string;
+        price_formatted: string;
+        created_at: string;
+    }>;
+    payment_history: Array<{
+        payment_id: string;
+        user_id: string;
+        user_name: string;
+        arrival_id: string;
+        payment_amount: string;
+        payment_amount_formatted: string;
+        payment_method: string;
+        payment_method_text: string;
+        cash_type: string;
+        cash_type_text: string;
+        payment_dollar_rate: string;
+        created_at: string;
+    }>;
+}
 
 interface PaymentTableProps {
     payments: Payment[];
@@ -50,6 +100,11 @@ export function PaymentTable({
     isSearching,
 }: PaymentTableProps) {
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [viewModalOpen, setViewModalOpen] = useState(false);
+    const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(
+        null
+    );
+    const [loadingDetails, setLoadingDetails] = useState(false);
 
     const getPaymentMethodColor = (method: string) => {
         switch (method) {
@@ -74,12 +129,12 @@ export function PaymentTable({
 
     // Removed formatDate function - using formatDateTime from utils
 
-    const formatAmount = (amount: string, cashTypeText: string) => {
-        const currency = cashTypeText === "Доллар" ? "$" : "сум";
-        return `${parseFloat(amount)
-            .toLocaleString()
-            .replace(/,/g, " ")} ${currency}`;
-    };
+    // const formatAmount = (amount: string, cashTypeText: string) => {
+    //     const currency = cashTypeText === "Доллар" ? "$" : "сум";
+    //     return `${parseFloat(amount)
+    //         .toLocaleString()
+    //         .replace(/,/g, " ")} ${currency}`;
+    // };
 
     const handleDelete = async (paymentId: string, supplierName: string) => {
         setDeletingId(paymentId);
@@ -87,6 +142,24 @@ export function PaymentTable({
             await onDelete(paymentId, supplierName);
         } finally {
             setDeletingId(null);
+        }
+    };
+
+    const handleViewPayment = async (arrivalId: string) => {
+        setLoadingDetails(true);
+        try {
+            const response = await GetDataSimple(
+                `api/payments/read/${arrivalId}`
+            );
+            setPaymentDetails(response);
+            setViewModalOpen(true);
+        } catch (error: any) {
+            toast.error(
+                error.response?.data?.error ||
+                    "Ошибка при загрузке деталей платежа"
+            );
+        } finally {
+            setLoadingDetails(false);
         }
     };
 
@@ -223,10 +296,7 @@ export function PaymentTable({
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
                                         <span className="text-sm text-gray-900 dark:text-white">
-                                            {formatAmount(
-                                                payment.payment_amount,
-                                                payment.cash_type_text
-                                            )}
+                                            {payment?.payment_amount_formatted}
                                         </span>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
@@ -294,25 +364,60 @@ export function PaymentTable({
                                         </span>
                                     </TableCell>
                                     <TableCell className="px-5 py-4">
-                                        <Button
-                                            onClick={() =>
-                                                handleDelete(
-                                                    payment.payment_id,
-                                                    payment.supplier_name
-                                                )
-                                            }
-                                            size="xs"
-                                            variant="danger"
-                                            disabled={
-                                                deletingId ===
-                                                payment.payment_id
-                                            }
-                                            startIcon={
-                                                <TrashBinIcon className="size-4" />
-                                            }
-                                        >
-                                            {""}
-                                        </Button>
+                                        <div className="flex items-center space-x-2">
+                                            <Button
+                                                onClick={() =>
+                                                    handleViewPayment(
+                                                        payment.arrival_id
+                                                    )
+                                                }
+                                                size="xs"
+                                                variant="outline"
+                                                disabled={loadingDetails}
+                                                startIcon={
+                                                    <svg
+                                                        className="w-4 h-4"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                        />
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={2}
+                                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                        />
+                                                    </svg>
+                                                }
+                                            >
+                                                {""}
+                                            </Button>
+                                            <Button
+                                                onClick={() =>
+                                                    handleDelete(
+                                                        payment.payment_id,
+                                                        payment.supplier_name
+                                                    )
+                                                }
+                                                size="xs"
+                                                variant="danger"
+                                                disabled={
+                                                    deletingId ===
+                                                    payment.payment_id
+                                                }
+                                                startIcon={
+                                                    <TrashBinIcon className="size-4" />
+                                                }
+                                            >
+                                                {""}
+                                            </Button>
+                                        </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -329,6 +434,311 @@ export function PaymentTable({
                     onPageChange={onPageChange}
                 />
             )}
+
+            {/* View Payment Details Modal */}
+            <Modal
+                isOpen={viewModalOpen}
+                onClose={() => setViewModalOpen(false)}
+                className="max-w-4xl"
+            >
+                <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Детали платежа
+                        </h3>
+                        <button
+                            onClick={() => setViewModalOpen(false)}
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        >
+                            <svg
+                                className="w-6 h-6"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {loadingDetails ? (
+                        <div className="flex justify-center items-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+                        </div>
+                    ) : paymentDetails ? (
+                        <div className="space-y-6">
+                            {/* Basic Information */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                        Основная информация
+                                    </h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div>
+                                            <span className="font-medium">
+                                                ID прихода:
+                                            </span>{" "}
+                                            {paymentDetails.arrival_id}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">
+                                                Номер счета:
+                                            </span>{" "}
+                                            {paymentDetails.invoice_number}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">
+                                                Поставщик:
+                                            </span>{" "}
+                                            {paymentDetails.supplier_name}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">
+                                                Пользователь:
+                                            </span>{" "}
+                                            {paymentDetails.user_name}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">
+                                                Статус:
+                                            </span>
+                                            <span
+                                                className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                                                    paymentDetails.payment_status ===
+                                                    "3"
+                                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                                                        : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                                                }`}
+                                            >
+                                                {
+                                                    paymentDetails.payment_status_text
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                        Финансовая информация
+                                    </h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div>
+                                            <span className="font-medium">
+                                                Общая сумма:
+                                            </span>{" "}
+                                            {
+                                                paymentDetails.total_price_formatted
+                                            }{" "}
+                                            {paymentDetails.cash_type_text}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">
+                                                Доставка:
+                                            </span>{" "}
+                                            {
+                                                paymentDetails.delivery_price_formatted
+                                            }{" "}
+                                            {paymentDetails.cash_type_text}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">
+                                                Курс доллара:
+                                            </span>{" "}
+                                            {parseFloat(
+                                                paymentDetails.arrival_dollar_rate
+                                            )
+                                                .toLocaleString()
+                                                .replace(/,/g, " ")}{" "}
+                                            сум
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">
+                                                Общие платежи:
+                                            </span>{" "}
+                                            {parseFloat(
+                                                paymentDetails.total_payments
+                                            )
+                                                .toLocaleString()
+                                                .replace(/,/g, " ")}{" "}
+                                            {paymentDetails.cash_type_text}
+                                        </div>
+                                        <div>
+                                            <span className="font-medium">
+                                                Дата создания:
+                                            </span>{" "}
+                                            {formatDateTime(
+                                                paymentDetails.created_at
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Comments */}
+                            {paymentDetails.comments && (
+                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                    <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                                        Комментарий
+                                    </h4>
+                                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                                        {paymentDetails.comments}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Items */}
+                            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                <h4 className="font-medium text-gray-900 dark:text-white mb-4">
+                                    Товары
+                                </h4>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="border-b border-gray-200 dark:border-gray-700">
+                                                <th className="text-left py-2">
+                                                    Материал
+                                                </th>
+                                                <th className="text-left py-2">
+                                                    Количество
+                                                </th>
+                                                <th className="text-left py-2">
+                                                    Цена
+                                                </th>
+                                                <th className="text-left py-2">
+                                                    Сумма
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {paymentDetails.items.map(
+                                                (item) => (
+                                                    <tr
+                                                        key={
+                                                            item.arrival_item_id
+                                                        }
+                                                        className="border-b border-gray-200 dark:border-gray-700"
+                                                    >
+                                                        <td className="py-2">
+                                                            {item.material_name}
+                                                        </td>
+                                                        <td className="py-2">
+                                                            {
+                                                                item.amount_formatted
+                                                            }{" "}
+                                                            {item.short_name}
+                                                        </td>
+                                                        <td className="py-2">
+                                                            {
+                                                                item.price_formatted
+                                                            }{" "}
+                                                            {
+                                                                paymentDetails.cash_type_text
+                                                            }
+                                                        </td>
+                                                        <td className="py-2">
+                                                            {(
+                                                                parseFloat(
+                                                                    item.amount
+                                                                ) *
+                                                                parseFloat(
+                                                                    item.price
+                                                                )
+                                                            )
+                                                                .toLocaleString()
+                                                                .replace(
+                                                                    /,/g,
+                                                                    " "
+                                                                )}{" "}
+                                                            {
+                                                                paymentDetails.cash_type_text
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* Payment History */}
+                            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                <h4 className="font-medium text-gray-900 dark:text-white mb-4">
+                                    История платежей
+                                </h4>
+                                <div className="space-y-3">
+                                    {paymentDetails.payment_history.map(
+                                        (payment) => (
+                                            <div
+                                                key={payment.payment_id}
+                                                className="border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                                            >
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                                    <div>
+                                                        <span className="font-medium">
+                                                            Сумма:
+                                                        </span>{" "}
+                                                        {
+                                                            payment.payment_amount_formatted
+                                                        }{" "}
+                                                        {payment.cash_type_text}
+                                                    </div>
+                                                    <div>
+                                                        <span className="font-medium">
+                                                            Способ:
+                                                        </span>{" "}
+                                                        {
+                                                            payment.payment_method_text
+                                                        }
+                                                    </div>
+                                                    <div>
+                                                        <span className="font-medium">
+                                                            Пользователь:
+                                                        </span>{" "}
+                                                        {payment.user_name}
+                                                    </div>
+                                                    <div>
+                                                        <span className="font-medium">
+                                                            Курс доллара:
+                                                        </span>{" "}
+                                                        {parseFloat(
+                                                            payment.payment_dollar_rate
+                                                        )
+                                                            .toLocaleString()
+                                                            .replace(
+                                                                /,/g,
+                                                                " "
+                                                            )}{" "}
+                                                        сум
+                                                    </div>
+                                                    <div>
+                                                        <span className="font-medium">
+                                                            Дата:
+                                                        </span>{" "}
+                                                        {formatDateTime(
+                                                            payment.created_at
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                            Не удалось загрузить детали платежа
+                        </div>
+                    )}
+                </div>
+            </Modal>
         </div>
     );
 }

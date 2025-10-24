@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import ComponentCard from "../../components/common/ComponentCard.tsx";
-import { GetDataSimple, PostSimple } from "../../service/data.ts";
+import { GetDataSimple, PostSimple, DeleteData } from "../../service/data.ts";
 import Pagination from "../../components/common/Pagination.tsx";
 import { useSearch } from "../../context/SearchContext";
 import { toast } from "react-hot-toast";
 import { useModal } from "../../hooks/useModal.ts";
 import Loader from "../../components/ui/loader/Loader.tsx";
-// import Button from "../../components/ui/button/Button.tsx";
+import Button from "../../components/ui/button/Button.tsx";
+import { Modal } from "../../components/ui/modal/index.tsx";
+import { TrashBinIcon } from "../../icons/index.ts";
 import AddCategoryModal from "./AddCategoryModal.tsx";
 
 interface Category {
@@ -27,6 +29,11 @@ export default function CategoryTab() {
     const [status, setStatus] = useState(false);
     const { isOpen, openModal, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+        null
+    );
+    const [isDeleting, setIsDeleting] = useState(false);
     // Excel functionality can be added later if needed
 
     const fetchCategories = useCallback(async () => {
@@ -96,6 +103,27 @@ export default function CategoryTab() {
         setStatus(!status);
         fetchCategories();
     }, [status, fetchCategories]);
+
+    const handleDelete = async () => {
+        if (!selectedCategory) return;
+
+        setIsDeleting(true);
+        try {
+            await DeleteData(
+                `api/materials/category/delete/${selectedCategory.category_id}`
+            );
+            toast.success("Категория успешно удалена");
+            changeStatus();
+            setDeleteModalOpen(false);
+        } catch (error: any) {
+            setDeleteModalOpen(false);
+            toast.error(
+                error.response?.data?.error || "Ошибка при удалении категории"
+            );
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     // Format date to DD.MM.YYYY, HH:MM format
     const formatDateTime = (dateString: string) => {
@@ -187,9 +215,9 @@ export default function CategoryTab() {
                                         <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                             Дата создания
                                         </th>
-                                        {/* <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                                        <th className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                                             Действия
-                                        </th> */}
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -243,56 +271,27 @@ export default function CategoryTab() {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    {/* <td className="px-5 py-4 text-sm">
+                                                    <td className="px-5 py-4 text-sm">
                                                         <div className="flex items-center space-x-2">
                                                             <Button
-                                                                size="xs"
-                                                                variant="outline"
-                                                                startIcon={
-                                                                    <svg
-                                                                        className="w-4 h-4"
-                                                                        fill="none"
-                                                                        stroke="currentColor"
-                                                                        viewBox="0 0 24 24"
-                                                                    >
-                                                                        <path
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                            strokeWidth={
-                                                                                2
-                                                                            }
-                                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                                                        />
-                                                                    </svg>
-                                                                }
-                                                            >
-                                                                {""}
-                                                            </Button>
-                                                            <Button
+                                                                onClick={() => {
+                                                                    setDeleteModalOpen(
+                                                                        true
+                                                                    );
+                                                                    setSelectedCategory(
+                                                                        category
+                                                                    );
+                                                                }}
                                                                 size="xs"
                                                                 variant="danger"
                                                                 startIcon={
-                                                                    <svg
-                                                                        className="w-4 h-4"
-                                                                        fill="none"
-                                                                        stroke="currentColor"
-                                                                        viewBox="0 0 24 24"
-                                                                    >
-                                                                        <path
-                                                                            strokeLinecap="round"
-                                                                            strokeLinejoin="round"
-                                                                            strokeWidth={
-                                                                                2
-                                                                            }
-                                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                                        />
-                                                                    </svg>
+                                                                    <TrashBinIcon className="size-4" />
                                                                 }
                                                             >
                                                                 {""}
                                                             </Button>
                                                         </div>
-                                                    </td> */}
+                                                    </td>
                                                 </tr>
                                             )
                                         )
@@ -314,6 +313,62 @@ export default function CategoryTab() {
                 onClose={closeModal}
                 onSuccess={changeStatus}
             />
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                className="max-w-md"
+            >
+                <div className="p-6 text-center">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full dark:bg-red-900">
+                        <svg
+                            className="w-6 h-6 text-red-600 dark:text-red-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                            />
+                        </svg>
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        Удалить категорию
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                        Вы уверены, что хотите удалить категорию "
+                        {selectedCategory?.category_name}"?
+                        <br />
+                        Это действие нельзя отменить.
+                    </p>
+
+                    <div className="flex justify-center space-x-3">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setDeleteModalOpen(false)}
+                            disabled={isDeleting}
+                            className="px-6 py-2.5"
+                        >
+                            Отмена
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="danger"
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="px-6 py-2.5"
+                        >
+                            {isDeleting ? "Удаление..." : "Удалить"}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* <Toaster
                 position="bottom-right"

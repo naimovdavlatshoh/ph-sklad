@@ -44,7 +44,6 @@ export default function ForemanList() {
             setTotalPages(totalPagesData);
             setLoading(false);
         } catch (error) {
-            console.error("Error fetching foremen:", error);
             toast.error("Что-то пошло не так при загрузке прорабов");
         }
     }, [page]);
@@ -59,7 +58,6 @@ export default function ForemanList() {
 
             // If search query is too short, don't search, just fetch all foremen
             if (query.trim().length < 3) {
-                console.log("Search query is too short, fetching all foremen");
                 fetchForemen();
                 return;
             }
@@ -84,7 +82,6 @@ export default function ForemanList() {
                     fetchForemen();
                 }
             } catch (error) {
-                console.error("Search error:", error);
                 fetchForemen();
             } finally {
                 setIsSearching(false);
@@ -105,16 +102,11 @@ export default function ForemanList() {
 
     // Handle search and page changes
     useEffect(() => {
-        console.log("Search effect triggered:", {
-            currentPage,
-            searchQuery,
-            status,
-        });
+
         if (currentPage === "foremen") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all foremen");
                 fetchForemen();
             } else {
                 console.log(

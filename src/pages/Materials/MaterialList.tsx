@@ -137,17 +137,12 @@ export default function MaterialList() {
 
     // Handle search and page changes
     useEffect(() => {
-        console.log("Search effect triggered:", {
-            currentPage,
-            searchQuery,
-            status,
-        });
+
         if (currentPage === "materials") {
             if (searchQuery.trim() && searchQuery.trim().length >= 3) {
                 console.log("Performing search for:", searchQuery);
                 performSearch(searchQuery);
             } else if (searchQuery.trim() === "") {
-                console.log("Empty search, fetching all materials");
                 fetchMaterials();
             } else {
                 console.log(
