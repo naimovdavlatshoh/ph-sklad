@@ -46,7 +46,7 @@ export default function KitchenChart() {
     }, [year]);
 
     const options: ApexOptions = {
-        colors: ["#8B5CF6", "#F59E0B"],
+        colors: ["#10B981"],
         chart: {
             fontFamily: "Outfit, sans-serif",
             type: "bar",
@@ -93,7 +93,7 @@ export default function KitchenChart() {
         },
         yaxis: {
             title: {
-                text: "Количество людей / Общая сумма (сум)",
+                text: "Среднее на человека (сум)",
             },
         },
         grid: {
@@ -113,33 +113,33 @@ export default function KitchenChart() {
             followCursor: true,
             custom: function ({ dataPointIndex, w }) {
                 const monthName = w.globals.labels[dataPointIndex];
-                const totalPeople =
-                    w.globals.initialSeries[0].data[dataPointIndex];
-                const totalAmount =
-                    w.globals.initialSeries[1].data[dataPointIndex];
                 const averagePerPerson =
-                    totalPeople > 0
-                        ? (totalAmount / totalPeople).toFixed(2)
-                        : 0;
+                    w.globals.initialSeries[0].data[dataPointIndex];
+                const monthData = data[dataPointIndex];
 
                 return `
                     <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
                         <div class="text-sm font-semibold text-gray-900 dark:text-white mb-2">${monthName}</div>
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <div class="w-3 h-3 rounded" style="background-color: #8B5CF6;"></div>
+                                <div class="w-3 h-3 rounded" style="background-color: #3B82F6;"></div>
                                 <span class="text-sm text-gray-600 dark:text-gray-300">Количество людей:</span>
-                                <span class="text-sm font-medium text-gray-900 dark:text-white">${totalPeople} чел.</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">${
+                                    monthData?.total_people || 0
+                                } чел.</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="w-3 h-3 rounded" style="background-color: #F59E0B;"></div>
                                 <span class="text-sm text-gray-600 dark:text-gray-300">Общая сумма:</span>
-                                <span class="text-sm font-medium text-gray-900 dark:text-white">${totalAmount.toLocaleString()} сум</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">${
+                                    monthData?.total_arrival_sum?.toLocaleString() ||
+                                    0
+                                } сум</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="w-3 h-3 rounded" style="background-color: #10B981;"></div>
                                 <span class="text-sm text-gray-600 dark:text-gray-300">Среднее на человека:</span>
-                                <span class="text-sm font-medium text-gray-900 dark:text-white">${averagePerPerson} сум</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white">${averagePerPerson.toLocaleString()} сум</span>
                             </div>
                         </div>
                     </div>
@@ -150,12 +150,8 @@ export default function KitchenChart() {
 
     const series = [
         {
-            name: "Количество людей",
-            data: data.map((item) => item.total_people),
-        },
-        {
-            name: "Общая сумма",
-            data: data.map((item) => item.total_arrival_sum),
+            name: "Среднее на человека",
+            data: data.map((item) => item.average_per_person),
         },
     ];
 

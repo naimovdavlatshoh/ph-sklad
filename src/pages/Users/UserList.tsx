@@ -6,13 +6,13 @@ import { GetDataSimple } from "../../service/data";
 import { useModal } from "../../hooks/useModal";
 import AddUserModal from "./AddUser";
 import TableUser from "./TableUser";
-import Pagination from "../../components/common/Pagination.tsx"; // 👈 yangi component
+import Pagination from "../../components/common/Pagination.tsx";
 import { Toaster } from "react-hot-toast";
 import Loader from "../../components/ui/loader/Loader.tsx";
 
 export default function ClientList() {
     const [users, setUsers] = useState([]);
-    const [page, setPage] = useState(1); // 👈 pagination uchun
+    const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const { isOpen, openModal, closeModal } = useModal();
     const [status, setStatus] = useState(false);
@@ -41,7 +41,7 @@ export default function ClientList() {
     return (
         <>
             <PageMeta
-                title="PH-sklad"
+                title="WAREHOUSE"
                 description="User list with pagination"
             />
             <PageBreadcrumb pageTitle="Пользователи" />

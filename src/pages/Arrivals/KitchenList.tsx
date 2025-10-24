@@ -442,7 +442,7 @@ export default function KitchenList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description={getPageTitle()} />
+            <PageMeta title="WAREHOUSE" description="" />
             <PageBreadcrumb pageTitle={getPageTitle()} />
 
             <div className="space-y-6">

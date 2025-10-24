@@ -185,7 +185,7 @@ export default function SupplierList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Список поставщиков" />
+            <PageMeta title="WAREHOUSE" description="Список поставщиков" />
             <PageBreadcrumb pageTitle="Поставщики" />
             <ComponentCard
                 title="Список поставщиков"

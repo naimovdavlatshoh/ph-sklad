@@ -241,7 +241,7 @@ export default function TableOstatki({
     return (
         <>
             <ComponentCard
-                title="Склад"
+                title="WAREHOUSE"
                 desc={
                     <Button
                         type="button"

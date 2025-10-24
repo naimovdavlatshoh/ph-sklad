@@ -376,7 +376,7 @@ export default function TableExpenses({
     return (
         <>
             <ComponentCard
-                title="Склад"
+                title="WAREHOUSE"
                 desc={
                     <div className="flex gap-3">
                         <Button

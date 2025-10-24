@@ -126,7 +126,7 @@ export default function ReturnList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Возвраты" />
+            <PageMeta title="WAREHOUSE" description="Возвраты" />
             <PageBreadcrumb pageTitle="Возвраты" />
             <ComponentCard
                 title="Список возвратов"

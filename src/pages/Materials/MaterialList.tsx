@@ -159,7 +159,7 @@ export default function MaterialList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Список материалов" />
+            <PageMeta title="WAREHOUSE" description="Список материалов" />
             <PageBreadcrumb pageTitle="Материалы" />
             <ComponentCard
                 title="Список материалов"

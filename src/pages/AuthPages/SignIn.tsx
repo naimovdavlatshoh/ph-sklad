@@ -5,7 +5,7 @@ import SignInForm from "../../components/auth/SignInForm";
 export default function SignIn() {
     return (
         <>
-            <PageMeta title="PH-Sklad" description="Sklad management system" />
+            <PageMeta title="WAREHOUSE" description="Sklad management system" />
             <AuthLayout>
                 <SignInForm />
             </AuthLayout>

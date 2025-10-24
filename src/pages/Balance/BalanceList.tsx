@@ -128,7 +128,7 @@ export default function BalanceList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Баланс" />
+            <PageMeta title="WAREHOUSE" description="Баланс" />
             <PageBreadcrumb pageTitle="Баланс" />
             <ComponentCard
                 title="Список балансов"

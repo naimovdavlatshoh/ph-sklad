@@ -561,7 +561,7 @@ export default function ArrivalList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description={getPageTitle()} />
+            <PageMeta title="WAREHOUSE" description="" />
             <PageBreadcrumb pageTitle={getPageTitle()} />
 
             <div className="space-y-6">

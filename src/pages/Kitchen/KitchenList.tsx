@@ -39,7 +39,7 @@ export default function KitchenList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Кухня" />
+            <PageMeta title="WAREHOUSE" description="Кухня" />
             <PageBreadcrumb pageTitle="Кухня" />
 
             <div className="space-y-6">

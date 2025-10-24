@@ -13,8 +13,8 @@ export default function Home() {
     return (
         <>
             <PageMeta
-                title="PH-sklad Dashboard"
-                description="Dashboard for PH-sklad warehouse management system"
+                title="WAREHOUSE"
+                description=""
             />
             <div className="grid grid-cols-12 gap-4 md:gap-6">
                 {/* New Dashboard Components */}

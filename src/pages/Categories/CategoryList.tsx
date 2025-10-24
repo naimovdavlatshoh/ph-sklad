@@ -99,7 +99,7 @@ export default function CategoryList() {
     return (
         <>
             <PageMeta
-                title="PH-sklad"
+                title="WAREHOUSE"
                 description="Список Категории метариала"
             />
 

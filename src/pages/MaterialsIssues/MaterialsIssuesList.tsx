@@ -405,7 +405,7 @@ export default function MaterialsIssuesList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Выдача материалов" />
+            <PageMeta title="WAREHOUSE" description="Выдача материалов" />
             <PageBreadcrumb pageTitle="Выдача" />
             <ComponentCard
                 title="Список выданных материалов"

@@ -123,7 +123,7 @@ export default function ForemanList() {
 
     return (
         <>
-            <PageMeta title="PH-sklad" description="Список прорабов" />
+            <PageMeta title="WAREHOUSE" description="Список прорабов" />
             <PageBreadcrumb pageTitle="Прорабы" />
             <ComponentCard
                 title="Список прорабов"
