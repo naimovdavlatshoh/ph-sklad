@@ -123,7 +123,7 @@ const navItems: NavItem[] = [
         roles: [1, 2], // Admin va Director
     },
     {
-        name: "KassaBank",
+        name: "Касса-Банк",
         icon: <GrMoney />,
         path: "/cashbank",
         roles: [1, 2],
