@@ -161,7 +161,7 @@ export default function AddRasxodModal({
             <div className="p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        Добавить расход
+                    Окно оплаты
                     </h2>
                 </div>
 
