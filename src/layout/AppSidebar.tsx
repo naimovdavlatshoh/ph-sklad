@@ -122,6 +122,12 @@ const navItems: NavItem[] = [
         path: "/payments",
         roles: [1, 2], // Admin va Director
     },
+    {
+        name: "KassaBank",
+        icon: <GrMoney />,
+        path: "/cashbank",
+        roles: [1, 2],
+    },
     // {
     //     name: "Новые контракты",
     //     icon: <IoDocumentLockOutline />,
@@ -530,7 +536,7 @@ const AppSidebar: React.FC = () => {
                             </h2>
                             {renderMenuItems(filteredNavItems, "main")}
                         </div>
-                        <div >
+                        <div>
                             <a
                                 href="https://cbu.uz/"
                                 target="_blank"

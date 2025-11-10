@@ -33,6 +33,7 @@ import { WriteOff } from "./pages/WriteOff";
 import { BalanceList } from "./pages/Balance";
 import { ReturnList } from "./pages/Returns";
 import { PaymentList } from "./pages/Payments";
+import CashBankList from "./pages/CashBank/CashBankList";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -123,6 +124,10 @@ export default function App() {
                             <Route path="/returns" element={<ReturnList />} />
 
                             <Route path="/payments" element={<PaymentList />} />
+                            <Route
+                                path="/cashbank"
+                                element={<CashBankList />}
+                            />
 
                             <Route path="/writeoff" element={<WriteOff />} />
 
