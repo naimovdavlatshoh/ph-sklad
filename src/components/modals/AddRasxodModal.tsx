@@ -48,7 +48,7 @@ export default function AddRasxodModal({
         category_id: "",
         payment_amount: "",
         payment_method: "1",
-        cash_type: "1",
+        cash_type: "0",
         comments: "",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,14 +146,12 @@ export default function AddRasxodModal({
 
     const paymentMethodOptions = [
         { value: 1, label: "Наличка" },
-        { value: 2, label: "Терминал" },
         { value: 3, label: "Клик" },
-        { value: 4, label: "Перечисление" },
     ];
 
     const cashTypeOptions = [
-        { value: 0, label: "UZS" },
-        { value: 1, label: "USD" },
+        { value: 1, label: "ДОЛЛАР" },
+        { value: 0, label: "SUM" },
     ];
 
     return (
@@ -161,7 +159,7 @@ export default function AddRasxodModal({
             <div className="p-6">
                 <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    Окно оплаты
+                        Окно оплаты
                     </h2>
                 </div>
 

@@ -8,6 +8,36 @@ import TextArea from "../form/input/TextArea";
 import { PostDataTokenJson } from "../../service/data";
 import { toast } from "react-hot-toast";
 
+// Format number with thousand separators and decimal support
+const formatNumberInput = (value: string): string => {
+    // Remove all non-digit and non-decimal characters except one decimal point
+    let cleaned = value.replace(/[^\d.]/g, "");
+
+    // Ensure only one decimal point
+    const parts = cleaned.split(".");
+    if (parts.length > 2) {
+        cleaned = parts[0] + "." + parts.slice(1).join("");
+    }
+
+    if (cleaned === "" || cleaned === ".") return "";
+
+    // Split into integer and decimal parts
+    const [integerPart, decimalPart] = cleaned.split(".");
+
+    // Format integer part with spaces as thousand separators
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+    // Combine with decimal part if exists
+    return decimalPart !== undefined
+        ? `${formattedInteger}.${decimalPart}`
+        : formattedInteger;
+};
+
+// Parse formatted number back to numeric string
+const parseFormattedNumber = (value: string): string => {
+    return value.replace(/\s/g, "").replace(/[^\d.]/g, "");
+};
+
 interface AddPrixodModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -32,16 +62,19 @@ export default function AddPrixodModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Parse formatted number to get actual numeric value
+        const numericValue = parseFormattedNumber(formData.arrival_amount);
+
         // Validation
         const newErrors: { arrival_amount?: string } = {};
 
-        if (!formData.arrival_amount.trim()) {
+        if (!numericValue || numericValue.trim() === "") {
             newErrors.arrival_amount = "Сумма обязательна";
-        } else if (
-            isNaN(Number(formData.arrival_amount)) ||
-            Number(formData.arrival_amount) <= 0
-        ) {
-            newErrors.arrival_amount = "Введите корректную сумму";
+        } else {
+            const numValue = Number(numericValue);
+            if (isNaN(numValue) || numValue <= 0) {
+                newErrors.arrival_amount = "Введите корректную сумму";
+            }
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -52,7 +85,7 @@ export default function AddPrixodModal({
         setIsSubmitting(true);
         try {
             await PostDataTokenJson("api/kassabank/arrivals/create", {
-                arrival_amount: Number(formData.arrival_amount),
+                arrival_amount: Number(numericValue),
                 payment_method: Number(formData.payment_method),
                 comments: formData.comments.trim() || undefined,
             });
@@ -109,13 +142,12 @@ export default function AddPrixodModal({
                             placeholder="0"
                             value={formData.arrival_amount}
                             onChange={(e) => {
-                                const numericValue = e.target.value.replace(
-                                    /[^\d.]/g,
-                                    ""
+                                const formatted = formatNumberInput(
+                                    e.target.value
                                 );
                                 setFormData({
                                     ...formData,
-                                    arrival_amount: numericValue,
+                                    arrival_amount: formatted,
                                 });
                                 if (errors.arrival_amount) {
                                     setErrors({

@@ -15,6 +15,7 @@ import Button from "../../components/ui/button/Button.tsx";
 import { TrashBinIcon, DollarLineIcon } from "../../icons/index.ts";
 import { TbCategory } from "react-icons/tb";
 import { IoMdAdd } from "react-icons/io";
+import { formatAmount } from "../../utils/numberFormat.ts";
 
 export default function RasxodTab() {
     const [items, setItems] = useState<any[]>([]);
@@ -31,6 +32,8 @@ export default function RasxodTab() {
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
     const [searchKeyword, setSearchKeyword] = useState<string>("");
     const [addRasxodModalOpen, setAddRasxodModalOpen] = useState(false);
+    const [balance, setBalance] = useState<string | null>(null);
+    const [balance_card, setBalanceCard] = useState<string | null>(null);
 
     const CommentIcon = ({ className }: { className?: string }) => (
         <svg
@@ -51,11 +54,14 @@ export default function RasxodTab() {
     const fetchPayments = useCallback(async () => {
         setLoading(true);
         try {
-            let url = `api/kassabank/payments/list?page=${page}&limit=10`;
+            let url = `api/kassabank/payments/list?page=${page}&limit=30`;
             if (selectedCategoryId && selectedCategoryId !== "0") {
                 url += `&category_id=${selectedCategoryId}`;
             }
             const res: any = await GetDataSimple(url);
+            setBalance(res?.balance_cash);
+            setBalanceCard(res?.balance_click);
+
             const list = res?.result || res?.data?.result || [];
             const pages = res?.pages || res?.data?.pages || 1;
             setItems(list);
@@ -109,13 +115,12 @@ export default function RasxodTab() {
 
     const handleCategoryChange = (value: string) => {
         setSelectedCategoryId(value === "0" ? "" : value);
-        setPage(1); // Reset to first page when category changes
+        setPage(1);
     };
 
     const handleSearch = useCallback(
         async (keyword: string) => {
             if (keyword.trim().length < 3) {
-                // If keyword is less than 3 characters, fetch normal list
                 fetchPayments();
                 return;
             }
@@ -142,7 +147,6 @@ export default function RasxodTab() {
         [fetchPayments]
     );
 
-    // Search effect - only trigger when searchKeyword changes and has at least 3 characters
     useEffect(() => {
         if (searchKeyword.trim().length >= 3) {
             const timeoutId = setTimeout(() => {
@@ -183,6 +187,7 @@ export default function RasxodTab() {
 
     // Define visible columns with Russian headers
     const columns: { key: string; label: string }[] = [
+        { key: "index", label: "#" },
         { key: "payment_id", label: "ID" },
         { key: "user_name", label: "Пользователь" },
         { key: "category_name", label: "Категория" },
@@ -215,6 +220,20 @@ export default function RasxodTab() {
                 title="Расход"
                 desc={
                     <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-1">
+                            <p className="text-xs">
+                                Баланс (Наличка) :{" "}
+                                <span className="text-black font-bold">
+                                    {formatAmount(Number(balance))} UZS
+                                </span>
+                            </p>
+                            <p className="text-xs">
+                                Баланс (Карта) :{" "}
+                                <span className="text-black font-bold">
+                                    {formatAmount(Number(balance_card))} UZS
+                                </span>
+                            </p>
+                        </div>
                         <div className="w-[300px]">
                             <InputField
                                 id="search_input"
@@ -304,7 +323,11 @@ export default function RasxodTab() {
                                                     key={c.key}
                                                     className="px-4 py-2"
                                                 >
-                                                    {c.key === "comments" ? (
+                                                    {c.key === "index" ? (
+                                                        (page - 1) * 30 +
+                                                        idx +
+                                                        1
+                                                    ) : c.key === "comments" ? (
                                                         row[c.key] &&
                                                         String(
                                                             row[c.key]

@@ -40,6 +40,7 @@ export default function PrixodTab() {
 
     // Visible columns with Russian headers (exclude IDs)
     const columns: { key: string; label: string }[] = [
+        { key: "index", label: "#" },
         { key: "user_name", label: "Пользователь" },
         { key: "payment_method_text", label: "Метод оплаты" },
         { key: "arrival_amount_formatted", label: "Сумма (UZS)" },
@@ -66,7 +67,7 @@ export default function PrixodTab() {
         setLoading(true);
         try {
             const res: any = await GetDataSimple(
-                `api/kassabank/arrivals/list?page=${page}&limit=10`
+                `api/kassabank/arrivals/list?page=${page}&limit=30`
             );
             const list = res?.result || res?.data?.result || [];
             const pages = res?.pages || res?.data?.pages || 1;
@@ -156,7 +157,11 @@ export default function PrixodTab() {
                                                     key={c.key}
                                                     className="px-4 py-2"
                                                 >
-                                                    {c.key === "comments" ? (
+                                                    {c.key === "index" ? (
+                                                        (page - 1) * 30 +
+                                                        idx +
+                                                        1
+                                                    ) : c.key === "comments" ? (
                                                         row[c.key] &&
                                                         String(
                                                             row[c.key]
